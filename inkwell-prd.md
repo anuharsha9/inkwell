@@ -160,6 +160,12 @@ Because she publishes in public, Inkwell scans drafts for confidential or identi
 ### 5.12 Settings **[BUILT]**
 One page: **Appearance** (signature accent picker — a Moleskine-app signature — + day/night theme), **AI writing partner** (Anthropic key + model + Learn-my-voice + editable voice profile), **Source material** (link to §5.8), **Publishing destinations** (Substack/LinkedIn/Medium URLs), **Image generation** (image-AI provider config), **Backup & portability** (export/import). Every credential is local-only and never shipped.
 
+### 5.13 Local intelligence layer **[BUILT]**
+Real client-side analysis that runs with **no API calls** — readability (Flesch ease + grade), sentence-rhythm (length variance), lexical diversity, filler/passive/adverb density, and a feature-based **publish-readiness score** with a factor checklist. This is the **default** insight surface (the Coach's Teach tab leads with it; Home shows live corpus stats), so the everyday work is free, instant, private, and offline. The live AI (Claude) is reserved for genuinely generative tasks. This also makes the public demo interactive without a key.
+
+### 5.14 Demo mode **[BUILT]**
+A build-time flag (`VITE_DEMO_MODE`) seeds a **fictional sample dataset** ("Maya Rivera", eight invented articles with real bodies) and fictional source suggestions into a **separate IndexedDB** (`inkwell-demo`) — her real 50-article plan and writing **never** ship to the public demo. A "Demo" badge marks the build. The no-key features (local intelligence, vocabulary, privacy, originality) work live, so an audience can explore the app and build a case study from it. The Vercel deploy uses `npm run build:demo`; her personal local app uses the real seed. Repo: `github.com/anuharsha9/inkwell` (private).
+
 ---
 
 ## 6. Persistence
@@ -168,6 +174,7 @@ One page: **Appearance** (signature accent picker — a Moleskine-app signature 
 - **All written work persists across sessions and refreshes. There is no lose-your-work path.** Autosave everywhere; structural ops write immediately.
 - Local-only credentials: the Anthropic key, image-AI key, and all settings live in `meta` on her device and are **never** transmitted anywhere except, at her request, directly to the provider's API.
 - **Export**: JSON backup (images embedded) + a zip of per-article `.md` files with their images (referenced by relative path). **Import**: from JSON, with an overwrite warning.
+- **Local file mirror [BUILT].** During local dev (her personal use), every article with a body is mirrored automatically to a real markdown file in the project folder (`inkwell/articles/NN-slug.md`, with frontmatter) via a dev-server plugin — created/updated on save, removed when emptied or deleted. Her writing thus lives as permanent local files, never lost. The folder is gitignored (stays on her machine) and the mirror is a no-op in the static/Vercel demo build (no server). She runs the app locally; the demo is only an explorable showcase.
 
 ## 7. Design direction
 
