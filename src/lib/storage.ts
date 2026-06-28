@@ -38,6 +38,8 @@ export const DEFAULT_SETTINGS: Settings = {
   allowWebSearch: true,
   voiceProfile: '',
   voiceProfileUpdatedAt: '',
+  bookTitle: '',
+  bookArticleIds: [],
 }
 
 let dbPromise: Promise<IDBPDatabase> | null = null

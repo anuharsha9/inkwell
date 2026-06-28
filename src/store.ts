@@ -12,7 +12,7 @@ import { DEMO_MODE } from '@/lib/env'
 // quiet save indicator; structural ops (create/delete/import) write at once.
 // ─────────────────────────────────────────────────────────────────────────
 
-export type View = 'home' | 'learn' | 'archive' | 'editor' | 'config' | 'sources' | 'settings'
+export type View = 'home' | 'learn' | 'archive' | 'editor' | 'config' | 'craft' | 'book' | 'sources' | 'settings'
 export type GroupBy = 'phase' | 'status' | 'recent'
 export type Theme = 'light' | 'dark'
 export type SaveState = 'idle' | 'saving' | 'saved'

@@ -32,6 +32,8 @@ export type IconName =
   | 'sources'
   | 'shield'
   | 'home'
+  | 'chart'
+  | 'book'
 
 const P: Record<IconName, JSX.Element> = {
   archive: (
@@ -184,6 +186,18 @@ const P: Record<IconName, JSX.Element> = {
       <path d="M4 10.5 12 4l8 6.5" />
       <path d="M5.5 9.5V19a1 1 0 0 0 1 1h11a1 1 0 0 0 1-1V9.5" />
       <path d="M10 20v-5h4v5" />
+    </>
+  ),
+  chart: (
+    <>
+      <path d="M4.5 4.5v15h15" />
+      <path d="M8 16l3.5-4 3 2.5L20 7.5" />
+    </>
+  ),
+  book: (
+    <>
+      <path d="M5 4.5h9a2 2 0 0 1 2 2V20l-3-1.5L10 20l-3-1.5L4 20V6.5a2 2 0 0 1 1-2Z" />
+      <path d="M8 8.5h5M8 12h4" />
     </>
   ),
 }

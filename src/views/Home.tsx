@@ -30,6 +30,8 @@ export function Home() {
 
       <Dashboard />
 
+      <Momentum />
+
       <div className="home-grid">
         {/* Ready to publish — the command-center centerpiece */}
         <section className="home-section span-2">
@@ -153,6 +155,53 @@ function InsightCard() {
         </button>
       )}
     </section>
+  )
+}
+
+// ── Momentum (calm motivation — rewards the practice, never nags) ──────────
+function Momentum() {
+  const articles = useStore((s) => s.articles)
+  const setView = useStore((s) => s.setView)
+  const list = Object.values(articles)
+
+  // Days she actually wrote (a bodied article updated that day).
+  const days = new Set(
+    list.filter((a) => a.body.trim()).map((a) => new Date(a.updatedAt).toISOString().slice(0, 10)),
+  )
+  let streak = 0
+  const d = new Date()
+  // allow today or yesterday to start the streak
+  if (!days.has(d.toISOString().slice(0, 10))) d.setDate(d.getDate() - 1)
+  while (days.has(d.toISOString().slice(0, 10))) {
+    streak++
+    d.setDate(d.getDate() - 1)
+  }
+
+  const weekAgo = Date.now() - 7 * 86400000
+  const weekWords = list
+    .filter((a) => a.body.trim() && new Date(a.updatedAt).getTime() >= weekAgo)
+    .reduce((s, a) => s + a.wordCount, 0)
+  const published = list.filter((a) => a.status === 'published').length
+
+  return (
+    <button className="momentum" onClick={() => setView('craft')} title="Open Writing Craft">
+      <div className="momentum-stat">
+        <Icon name="spark" size={16} />
+        <span className="m-num">{streak}</span>
+        <span className="m-lbl">day{streak === 1 ? '' : 's'} writing</span>
+      </div>
+      <div className="momentum-stat">
+        <span className="m-num">{weekWords.toLocaleString()}</span>
+        <span className="m-lbl">words this week</span>
+      </div>
+      <div className="momentum-stat">
+        <span className="m-num">{published}</span>
+        <span className="m-lbl">published</span>
+      </div>
+      <span className="momentum-link">
+        Your craft <Icon name="chevron" size={14} />
+      </span>
+    </button>
   )
 }
 

@@ -7,6 +7,8 @@ import { Learn } from './views/Learn'
 import { Archive } from './views/Archive'
 import { Editor } from './views/Editor'
 import { Config } from './views/Config'
+import { Craft } from './views/Craft'
+import { Book } from './views/Book'
 import { Sources } from './views/Sources'
 import { Settings } from './views/Settings'
 import { applyAccent, clearAccent } from './lib/accent'
@@ -47,6 +49,8 @@ export function App() {
               {view === 'home' && <Home />}
               {view === 'learn' && <Learn />}
               {view === 'archive' && <Archive />}
+              {view === 'craft' && <Craft />}
+              {view === 'book' && <Book />}
               {view === 'config' && <Config />}
               {view === 'sources' && <Sources />}
               {view === 'settings' && <Settings />}

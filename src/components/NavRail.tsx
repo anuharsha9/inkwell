@@ -8,6 +8,8 @@ const NAV: { view: View; label: string; icon: IconName }[] = [
   ...(DEMO_MODE ? ([{ view: 'learn', label: 'Learn Inkwell', icon: 'spark' }] as const) : []),
   { view: 'home', label: 'Home', icon: 'home' },
   { view: 'archive', label: 'Archive', icon: 'archive' },
+  { view: 'craft', label: 'Writing Craft', icon: 'chart' },
+  { view: 'book', label: 'Book', icon: 'book' },
   { view: 'config', label: 'Config Track', icon: 'config' },
   { view: 'settings', label: 'Settings', icon: 'settings' },
 ]
