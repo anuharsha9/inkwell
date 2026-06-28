@@ -3,6 +3,7 @@ import { useStore } from './store'
 import { NavRail, TabBar } from './components/NavRail'
 import { Toaster } from './components/ui'
 import { Home } from './views/Home'
+import { Learn } from './views/Learn'
 import { Archive } from './views/Archive'
 import { Editor } from './views/Editor'
 import { Config } from './views/Config'
@@ -44,6 +45,7 @@ export function App() {
           ) : (
             <div className="page">
               {view === 'home' && <Home />}
+              {view === 'learn' && <Learn />}
               {view === 'archive' && <Archive />}
               {view === 'config' && <Config />}
               {view === 'sources' && <Sources />}

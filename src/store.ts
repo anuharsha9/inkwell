@@ -3,6 +3,7 @@ import type { Article, InkImage, Phase, Platform, Settings, Status, Tag } from '
 import * as db from '@/lib/storage'
 import { countWords, nowISO, uuid } from '@/lib/text'
 import { removeArticleFile, syncArticleFile } from '@/lib/localArchive'
+import { DEMO_MODE } from '@/lib/env'
 
 // ─────────────────────────────────────────────────────────────────────────
 // Inkwell store. In-memory state updates are synchronous (instant UI); writes
@@ -11,7 +12,7 @@ import { removeArticleFile, syncArticleFile } from '@/lib/localArchive'
 // quiet save indicator; structural ops (create/delete/import) write at once.
 // ─────────────────────────────────────────────────────────────────────────
 
-export type View = 'home' | 'archive' | 'editor' | 'config' | 'sources' | 'settings'
+export type View = 'home' | 'learn' | 'archive' | 'editor' | 'config' | 'sources' | 'settings'
 export type GroupBy = 'phase' | 'status' | 'recent'
 export type Theme = 'light' | 'dark'
 export type SaveState = 'idle' | 'saving' | 'saved'
@@ -126,7 +127,7 @@ export const useStore = create<InkState>((set, get) => {
     vocab: [],
     theme: 'light',
 
-    view: 'home',
+    view: DEMO_MODE ? 'learn' : 'home', // demo visitors land on the showcase first
     activeId: null,
     groupBy: 'phase',
     filters: EMPTY_FILTERS,

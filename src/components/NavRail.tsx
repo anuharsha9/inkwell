@@ -4,6 +4,8 @@ import { readyQueue } from '@/lib/selectors'
 import { DEMO_MODE } from '@/lib/env'
 
 const NAV: { view: View; label: string; icon: IconName }[] = [
+  // The "Learn Inkwell" showcase leads the nav in the demo build.
+  ...(DEMO_MODE ? ([{ view: 'learn', label: 'Learn Inkwell', icon: 'spark' }] as const) : []),
   { view: 'home', label: 'Home', icon: 'home' },
   { view: 'archive', label: 'Archive', icon: 'archive' },
   { view: 'config', label: 'Config Track', icon: 'config' },
