@@ -80,6 +80,10 @@ export interface Settings {
   // Learned voice profile — derived from her own writing, injected into every AI call.
   voiceProfile: string
   voiceProfileUpdatedAt: string // ISO; empty until first learned
+  // Narrative craft read — reader-facing analysis shown on the Writing Craft page.
+  // Persists so it survives reloads; can be authored offline (no API) or refreshed via Claude.
+  craftInsight: string // markdown
+  craftInsightAt: string // ISO; empty until first written
   // Book mode — compile a book from selected articles, in chosen order.
   bookTitle: string
   bookArticleIds: string[]

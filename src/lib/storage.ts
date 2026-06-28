@@ -38,6 +38,8 @@ export const DEFAULT_SETTINGS: Settings = {
   allowWebSearch: true,
   voiceProfile: '',
   voiceProfileUpdatedAt: '',
+  craftInsight: '',
+  craftInsightAt: '',
   bookTitle: '',
   bookArticleIds: [],
 }

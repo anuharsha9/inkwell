@@ -663,6 +663,32 @@
   color: var(--ink);
 }
 
+/* Narrative "read closely" section — the persisted voice analysis */
+.craft-read {
+  margin-bottom: 28px;
+}
+.craft-read-foot {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-top: 10px;
+}
+.craft-read-meta {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.02em;
+  color: var(--ink-faint);
+  text-transform: uppercase;
+}
+.craft-read-foot .ai-error {
+  margin: 0;
+}
+.btn-sm {
+  padding: 5px 11px;
+  font-size: 12.5px;
+  margin-left: auto;
+}
+
 @media (max-width: 760px) {
   .craft-stats {
     grid-template-columns: repeat(2, 1fr);

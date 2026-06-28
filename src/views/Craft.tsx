@@ -10,9 +10,12 @@ export function Craft() {
   const articles = useStore((s) => s.articles)
   const settings = useStore((s) => s.settings)
   const setView = useStore((s) => s.setView)
+  const updateSettings = useStore((s) => s.updateSettings)
   const report = analyzeCorpus(Object.values(articles))
 
-  const [insight, setInsight] = useState('')
+  // The narrative read persists in settings — it shows immediately on load (no
+  // API needed) and can be refreshed with Claude.
+  const insight = settings.craftInsight
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
   const configured = isAIConfigured(settings)
@@ -25,7 +28,8 @@ export function Craft() {
         .map((a) => a.body.trim())
         .filter((b) => b.split(/\s+/).length >= 40)
         .slice(0, 10)
-      setInsight(await corpusInsight(samples, settings))
+      const text = await corpusInsight(samples, settings)
+      updateSettings({ craftInsight: text, craftInsightAt: new Date().toISOString() })
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Could not read your work right now.')
     } finally {
@@ -62,6 +66,68 @@ export function Craft() {
             <Stat num={report.avg.readingEase} label="avg reading ease" sub={easeLabel(report.avg.readingEase)} />
             <Stat num={`±${report.avg.rhythm}`} label="sentence variety" />
           </div>
+
+          {/* Narrative read of her voice — persisted, renders without the API */}
+          <section className="craft-section craft-read">
+            <h2 className="craft-h2">
+              <Icon name="spark" size={17} /> Your voice, read closely
+            </h2>
+            {insight ? (
+              <>
+                <div className="coach-teach-card">
+                  <Markdown body={insight} />
+                </div>
+                <div className="craft-read-foot">
+                  {settings.craftInsightAt && (
+                    <span className="craft-read-meta">
+                      Updated {new Date(settings.craftInsightAt).toLocaleDateString()}
+                    </span>
+                  )}
+                  {error && <span className="ai-error">{error}</span>}
+                  {configured && (
+                    <button className="btn btn-ghost btn-sm" disabled={busy} onClick={deepRead}>
+                      {busy ? (
+                        <>
+                          <span className="spin" /> Re-reading…
+                        </>
+                      ) : (
+                        <>
+                          <Icon name="sources" size={14} /> Refresh with Claude
+                        </>
+                      )}
+                    </button>
+                  )}
+                </div>
+              </>
+            ) : (
+              <div className="craft-card">
+                <p className="craft-card-detail">
+                  No close read yet.{' '}
+                  {configured
+                    ? 'Have Claude read across your writing for a narrative profile of your voice.'
+                    : 'Add Claude in Settings for a narrative read.'}
+                </p>
+                {error && <div className="ai-error" style={{ marginTop: 8 }}>{error}</div>}
+                {configured ? (
+                  <button className="btn btn-soft" style={{ marginTop: 10 }} disabled={busy} onClick={deepRead}>
+                    {busy ? (
+                      <>
+                        <span className="spin" /> Reading your body of work…
+                      </>
+                    ) : (
+                      <>
+                        <Icon name="sources" size={15} /> Have Claude read across your writing
+                      </>
+                    )}
+                  </button>
+                ) : (
+                  <button className="btn btn-ghost" style={{ marginTop: 10 }} onClick={() => setView('settings')}>
+                    Add Claude for a narrative read
+                  </button>
+                )}
+              </div>
+            )}
+          </section>
 
           {/* Growth over time */}
           {report.trend.length >= 2 && (
@@ -124,34 +190,6 @@ export function Craft() {
             <Icon name="spark" size={18} />
             <p>{report.focus}</p>
           </div>
-
-          {/* Optional AI deep-read */}
-          <section className="craft-section">
-            <h2 className="craft-h2">A deeper read</h2>
-            {insight && (
-              <div className="coach-teach-card" style={{ marginBottom: 12 }}>
-                <Markdown body={insight} />
-              </div>
-            )}
-            {error && <div className="ai-error" style={{ marginBottom: 10 }}>{error}</div>}
-            {configured ? (
-              <button className="btn btn-soft" disabled={busy} onClick={deepRead}>
-                {busy ? (
-                  <>
-                    <span className="spin" /> Reading your body of work…
-                  </>
-                ) : (
-                  <>
-                    <Icon name="sources" size={15} /> Have Claude read across your writing
-                  </>
-                )}
-              </button>
-            ) : (
-              <button className="btn btn-ghost" onClick={() => setView('settings')}>
-                Add Claude for a narrative read
-              </button>
-            )}
-          </section>
         </div>
       )}
     </>
