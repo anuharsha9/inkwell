@@ -84,6 +84,10 @@ export interface Settings {
   // Persists so it survives reloads; can be authored offline (no API) or refreshed via Claude.
   craftInsight: string // markdown
   craftInsightAt: string // ISO; empty until first written
+  // Her own list of sensitive strings (real employers, products, people) the
+  // local privacy guard flags exactly — keeps the things she most wants private
+  // from ever slipping into a published piece.
+  privacyTerms: string[]
   // Book mode — compile a book from selected articles, in chosen order.
   bookTitle: string
   bookArticleIds: string[]

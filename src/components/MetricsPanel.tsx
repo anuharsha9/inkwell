@@ -1,13 +1,17 @@
+import { useMemo } from 'react'
 import { useStore } from '@/store'
 import type { Article } from '@/types'
 import { analyze, easeLabel, readiness } from '@/lib/textmetrics'
+import { publishedBaseline } from '@/lib/craft'
 import { Icon } from './Icon'
 
 // Local, no-API analysis of a single draft — the default insight surface.
 export function MetricsPanel({ article }: { article: Article }) {
   const cover = useStore((s) => (article.coverImageId ? s.images[article.coverImageId] : undefined))
+  const articles = useStore((s) => s.articles)
+  const baseline = useMemo(() => publishedBaseline(Object.values(articles)), [articles])
   const m = analyze(article.body)
-  const r = readiness(article, Boolean(cover?.alt.trim()))
+  const r = readiness(article, Boolean(cover?.alt.trim()), baseline)
 
   if (!m) {
     return <p className="coach-hint">Write a dozen words or so and your live writing stats appear here — no AI needed.</p>
@@ -25,6 +29,7 @@ export function MetricsPanel({ article }: { article: Article }) {
         <div className="readiness-label">
           <strong>Publish-readiness</strong>
           <span>{r.score >= 75 ? 'In good shape' : r.score >= 45 ? 'Getting there' : 'Early draft'}</span>
+          {r.personalized && <span className="readiness-personal">scored against your published work</span>}
         </div>
       </div>
 
@@ -32,7 +37,7 @@ export function MetricsPanel({ article }: { article: Article }) {
         <Metric label="Reading ease" value={`${m.readingEase}`} sub={easeLabel(m.readingEase)} />
         <Metric label="Grade level" value={`${m.grade}`} sub="US grade" />
         <Metric label="Avg sentence" value={`${m.avgSentence}w`} sub={`rhythm ±${m.rhythm}`} />
-        <Metric label="Word variety" value={`${Math.round(m.lexicalDiversity * 100)}%`} sub="unique words" />
+        <Metric label="Word variety" value={`${Math.round(m.lexicalDiversity * 100)}%`} sub="lexical range" />
         <Metric label="Filler" value={`${m.fillerPer100}`} sub="per 100 words" warn={m.fillerPer100 >= 2} />
         <Metric label="Passive" value={`${m.passivePer100}`} sub="per 100 words" warn={m.passivePer100 >= 3} />
         <Metric label="Long sentences" value={`${m.longSentencePct}%`} sub="> 30 words" warn={m.longSentencePct >= 15} />

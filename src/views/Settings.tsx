@@ -209,6 +209,28 @@ export function Settings() {
           </div>
 
           <div className="set-field">
+            <label>Private terms — never publish these</label>
+            <p className="set-hint" style={{ marginBottom: 8 }}>
+              Real employers, product names, or people you want kept out of published pieces. The privacy guard flags any
+              of these in a draft, locally — one per line. (Kept on this device; never shipped to the demo.)
+            </p>
+            <textarea
+              className="meta-textarea"
+              rows={4}
+              placeholder={'Acme Corp\nProjectX\na former manager’s name'}
+              value={settings.privacyTerms.join('\n')}
+              onChange={(e) =>
+                updateSettings({
+                  privacyTerms: e.target.value
+                    .split(/[\n,]/)
+                    .map((t) => t.trim())
+                    .filter(Boolean),
+                })
+              }
+            />
+          </div>
+
+          <div className="set-field">
             <label>Security</label>
             <p className="set-hint" style={{ marginBottom: 10 }}>
               Your Anthropic key is stored in this browser's local database, unencrypted, on this device only — it's

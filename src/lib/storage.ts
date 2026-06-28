@@ -40,6 +40,7 @@ export const DEFAULT_SETTINGS: Settings = {
   voiceProfileUpdatedAt: '',
   craftInsight: '',
   craftInsightAt: '',
+  privacyTerms: [],
   bookTitle: '',
   bookArticleIds: [],
 }

@@ -69,3 +69,59 @@ export function selfOverlap(article: Article, all: Article[]): OverlapMatch[] {
   }
   return matches.sort((a, b) => b.words - a.words)
 }
+
+// ── Near-duplicate / echo detection (paraphrase-tolerant) ──────────────────
+// The exact-run detector above misses lightly-reworded repetition. This uses a
+// smaller (4-word) shingle window and measures overlap by *containment* — what
+// share of the shorter piece's phrasing also shows up in another — so a piece
+// you rewrote and re-used still surfaces. (Deep semantic paraphrase still needs
+// embeddings; this catches the common "edited repost" case.)
+const NEAR_SHINGLE = 4
+
+export interface Echo {
+  otherId: string
+  otherTitle: string
+  similarity: number // 0–100, containment of shared 4-word phrases
+  shared: number // count of shared phrases
+  sample: string // an example shared phrase
+}
+
+function shingleSet(toks: string[], n: number): Set<string> {
+  const s = new Set<string>()
+  for (let i = 0; i + n <= toks.length; i++) s.add(toks.slice(i, i + n).join(' '))
+  return s
+}
+
+export function nearDuplicates(article: Article, all: Article[], minShared = 6): Echo[] {
+  const target = tokens(article.body)
+  if (target.length < NEAR_SHINGLE * 2) return []
+  const tSet = shingleSet(target, NEAR_SHINGLE)
+  if (tSet.size === 0) return []
+
+  const echoes: Echo[] = []
+  for (const a of all) {
+    if (a.id === article.id) continue
+    const oToks = tokens(a.body)
+    if (oToks.length < NEAR_SHINGLE * 2) continue
+    const oSet = shingleSet(oToks, NEAR_SHINGLE)
+
+    let shared = 0
+    let sample = ''
+    for (const sh of tSet) {
+      if (oSet.has(sh)) {
+        shared++
+        if (!sample) sample = sh
+      }
+    }
+    if (shared < minShared) continue
+    const denom = Math.min(tSet.size, oSet.size) // containment, not Jaccard
+    echoes.push({
+      otherId: a.id,
+      otherTitle: a.title || 'Untitled',
+      similarity: Math.round((shared / denom) * 100),
+      shared,
+      sample,
+    })
+  }
+  return echoes.sort((a, b) => b.similarity - a.similarity)
+}

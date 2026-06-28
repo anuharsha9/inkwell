@@ -7,7 +7,7 @@ import { Markdown } from './Markdown'
 import { copyText } from '@/lib/clipboard'
 import { lookupWord, type WordEntry } from '@/lib/dictionary'
 import { CATEGORY_LABEL, localPrivacyScan, type PrivacyFinding } from '@/lib/privacy'
-import { selfOverlap } from '@/lib/plagiarism'
+import { nearDuplicates, selfOverlap } from '@/lib/plagiarism'
 import { MetricsPanel } from '@/components/MetricsPanel'
 import {
   coachLesson,
@@ -474,9 +474,16 @@ function ChecksTab({ article }: { article: Article }) {
   const [orig, setOrig] = useState('')
   const [origBusy, setOrigBusy] = useState(false)
 
-  const localFindings = useMemo(() => localPrivacyScan(article.body), [article.body])
+  const localFindings = useMemo(
+    () => localPrivacyScan(article.body, settings.privacyTerms),
+    [article.body, settings.privacyTerms],
+  )
   const overlaps = useMemo(
     () => selfOverlap(article, Object.values(allArticles)).filter((m) => m.words >= 9),
+    [article, allArticles],
+  )
+  const echoes = useMemo(
+    () => nearDuplicates(article, Object.values(allArticles)).filter((e) => e.similarity >= 12),
     [article, allArticles],
   )
 
@@ -605,11 +612,29 @@ function ChecksTab({ article }: { article: Article }) {
           ))}
         </>
       ) : (
-        !empty && (
+        !empty &&
+        echoes.length === 0 && (
           <div className="privacy-clean">
             <Icon name="check" size={16} strokeWidth={2.2} /> No repeated passages across your other articles.
           </div>
         )
+      )}
+
+      {echoes.length > 0 && (
+        <>
+          <p className="coach-hint" style={{ marginTop: overlaps.length ? 14 : 0, marginBottom: 10 }}>
+            Similar phrasing to other pieces (reworded, not verbatim) — worth a fresh angle.
+          </p>
+          {echoes.slice(0, 4).map((e, i) => (
+            <div className="coach-sugg" key={i}>
+              <span className="sugg-cat" style={{ ['--c' as string]: 'var(--accent)' }}>
+                {e.similarity}% echo
+              </span>
+              <h4 className="sugg-title">{e.otherTitle}</h4>
+              <div className="privacy-found">“…{e.sample}…”</div>
+            </div>
+          ))}
+        </>
       )}
 
       <button

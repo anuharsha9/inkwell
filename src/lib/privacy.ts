@@ -1,13 +1,13 @@
 // ─────────────────────────────────────────────────────────────────────────
 // Privacy / fact-check guard. Before anything is published, scan the draft for
 // confidential or identifying details Anuja does NOT want public — exact
-// salary/finances, birthdate, home address, phone/email, and (via the AI pass)
-// exact employer names. The rule she set: keep numbers generic and companies
-// generic. Nothing here mutates the draft — it flags and suggests; she decides.
+// salary/finances, birthdate, home address, phone/email, and named employers.
+// The rule she set: keep numbers generic and companies generic. Nothing here
+// mutates the draft — it flags and suggests; she decides.
 //
-// This local pass is regex-only, so it always works (no AI key needed). The AI
-// pass in lib/ai.ts catches what regex can't (named employers, figures written
-// in words, doxxable specifics).
+// All local (regex + her own term list), so it always works with no AI key.
+// The AI pass in lib/ai.ts still catches subtler cases (doxxable specifics,
+// figures buried in prose) when she chooses to spend a call.
 // ─────────────────────────────────────────────────────────────────────────
 
 export type PrivacyCategory = 'finance' | 'date' | 'address' | 'contact' | 'company' | 'identity'
@@ -27,6 +27,8 @@ interface Rule {
   note: string
 }
 
+const NUM_WORD = '(?:one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|twenty|thirty|forty|fifty|hundred|thousand)'
+
 const RULES: Rule[] = [
   // ── Money / salary / finances ──────────────────────────────────────────
   {
@@ -41,12 +43,32 @@ const RULES: Rule[] = [
     suggestion: '[a generic figure]',
     note: 'A specific amount — keep figures generic.',
   },
+  {
+    // Money written in words: "six figures", "twelve thousand rupees", "a few hundred dollars".
+    category: 'finance',
+    re: new RegExp(`\\b${NUM_WORD}[\\s-]?(?:figures?|${NUM_WORD})?[\\s-]?(?:dollars?|rupees?|figures?|lakhs?|crores?|thousand|million|billion)\\b`, 'gi'),
+    suggestion: '[a generic figure]',
+    note: 'A figure written out — keep it generic.',
+  },
+  {
+    // "$X a month/year", "X per month"
+    category: 'finance',
+    re: /\b(?:a|per)\s+(?:month|year|annum|week|hour)\b/gi,
+    suggestion: '',
+    note: 'A pay-rate phrasing — check the amount near it isn’t exact.',
+  },
   // ── Birthdate / specific dates ─────────────────────────────────────────
   {
     category: 'date',
-    re: /\bborn[^.,\n]{0,24}(?:19|20)\d{2}\b/gi,
+    re: /\b(?:born|birthday|date of birth|d\.?o\.?b\.?)[^.,\n]{0,28}(?:19|20)\d{2}\b/gi,
     suggestion: '[redacted]',
-    note: 'Looks like a birth year — best left out.',
+    note: 'Looks like a birth date — best left out.',
+  },
+  {
+    category: 'identity',
+    re: /\b\d{1,2}\s+years?\s+old\b/gi,
+    suggestion: '[redacted]',
+    note: 'Your exact age — consider leaving it vague.',
   },
   {
     category: 'date',
@@ -68,8 +90,10 @@ const RULES: Rule[] = [
     note: 'A street address — publish your city at most.',
   },
   {
+    // Whole-word abbreviation + an actual unit number, so "Ste"/"Unit" don't
+    // match inside "step" / "unite" / "unit testing".
     category: 'address',
-    re: /\b(?:Apt|Apartment|Suite|Ste|Unit)\.?\s*#?\s*\w+\b/gi,
+    re: /\b(?:Apt|Apartment|Suite|Ste|Unit)\b\.?\s*#?\s*\d+[A-Za-z]?\b/gi,
     suggestion: '',
     note: 'A unit/apartment number — drop it.',
   },
@@ -86,13 +110,37 @@ const RULES: Rule[] = [
     suggestion: '[redacted]',
     note: 'A phone number.',
   },
+  // ── Company / employer (heuristic — named orgs with a corporate suffix) ──
+  {
+    category: 'company',
+    re: /\b(?:[A-Z][A-Za-z0-9&.]+\s){0,3}(?:Inc|LLC|Corp|Corporation|Technologies|Software|Systems|Solutions|Group|Labs|Ltd|GmbH)\b\.?/g,
+    suggestion: '[a company]',
+    note: 'A named company — keep employers generic.',
+  },
 ]
 
-export function localPrivacyScan(text: string): PrivacyFinding[] {
+function escapeRegExp(s: string): string {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+}
+
+// `terms` is her own list of sensitive strings (real employers, product names,
+// people) — matched exactly so the things she most wants kept private always trip.
+export function localPrivacyScan(text: string, terms: string[] = []): PrivacyFinding[] {
   if (!text.trim()) return []
   const seen = new Set<string>()
   const findings: PrivacyFinding[] = []
-  for (const rule of RULES) {
+
+  const customRules: Rule[] = terms
+    .map((t) => t.trim())
+    .filter(Boolean)
+    .map((t) => ({
+      category: 'company' as PrivacyCategory,
+      re: new RegExp(`\\b${escapeRegExp(t)}\\b`, 'gi'),
+      suggestion: '[a company]',
+      note: 'On your private-terms list — keep it generic.',
+    }))
+
+  for (const rule of [...customRules, ...RULES]) {
     for (const m of text.matchAll(rule.re)) {
       const found = m[0].trim()
       const key = `${rule.category}:${found.toLowerCase()}`
