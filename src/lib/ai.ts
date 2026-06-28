@@ -12,14 +12,24 @@ import type { PrivacyCategory, PrivacyFinding } from './privacy'
 // local-only tool that she runs on her own machine with her own key.
 // ─────────────────────────────────────────────────────────────────────────
 
-// Configured AND allowed: a key is present and the master AI switch is on.
+// A key from .env.local (VITE_ANTHROPIC_KEY) is a convenient default for her
+// local build. The Settings field takes precedence (so the public demo's
+// per-visitor key still works); env is the fallback. NEVER set this var on
+// Vercel — Vite bakes it into the public bundle.
+const ENV_KEY = (import.meta.env.VITE_ANTHROPIC_KEY ?? '').trim()
+
+function effectiveKey(s: Settings): string {
+  return s.aiApiKey.trim() || ENV_KEY
+}
+
+// Configured AND allowed: a key is present (Settings or env) and AI is on.
 export function isAIConfigured(s: Settings): boolean {
-  return Boolean(s.aiApiKey.trim()) && s.aiEnabled !== false
+  return Boolean(effectiveKey(s)) && s.aiEnabled !== false
 }
 
 // Has a key but the user switched AI off via governance.
 export function isAIDisabledByGovernance(s: Settings): boolean {
-  return Boolean(s.aiApiKey.trim()) && s.aiEnabled === false
+  return Boolean(effectiveKey(s)) && s.aiEnabled === false
 }
 
 export function isWebSearchAllowed(s: Settings): boolean {
@@ -27,7 +37,7 @@ export function isWebSearchAllowed(s: Settings): boolean {
 }
 
 function client(s: Settings): Anthropic {
-  return new Anthropic({ apiKey: s.aiApiKey.trim(), dangerouslyAllowBrowser: true })
+  return new Anthropic({ apiKey: effectiveKey(s), dangerouslyAllowBrowser: true })
 }
 
 const MODEL = (s: Settings) => s.aiModel.trim() || 'claude-opus-4-8'
@@ -81,7 +91,9 @@ const ACTION_BRIEF: Record<QuickAction, (a: Article) => string> = {
 export async function runQuickAction(action: QuickAction, article: Article, s: Settings): Promise<string> {
   const brief = ACTION_BRIEF[action](article)
   const body = article.body.trim() || '(The draft is currently empty.)'
-  const user = `Title: ${article.title || 'Untitled'}\nAngle: ${article.hook || '—'}\n\n${brief}\n\n--- DRAFT ---\n${body}`
+  const strict =
+    '\n\nCRITICAL: Output ONLY the resulting article text itself — no preamble, no explanation of your changes, no notes, no headings you added, no code fences. The output replaces the draft directly, so it must contain nothing but the writing.'
+  const user = `Title: ${article.title || 'Untitled'}\nAngle: ${article.hook || '—'}\n\n${brief}${strict}\n\n--- DRAFT ---\n${body}`
   const max = action === 'continue' ? 1200 : action === 'expand' ? 3000 : 2600
   return complete(s, systemPrompt(s), user, max)
 }

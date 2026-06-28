@@ -2,6 +2,7 @@
 
 interface ImportMetaEnv {
   readonly VITE_DEMO_MODE?: string
+  readonly VITE_ANTHROPIC_KEY?: string
 }
 
 interface ImportMeta {

@@ -107,7 +107,14 @@ export function localPrivacyScan(text: string): PrivacyFinding[] {
       })
     }
   }
-  return findings
+  // Drop a finding when a longer finding of the same category already contains
+  // it (e.g. "138K" inside "$138K") so the same value isn't flagged twice.
+  return findings.filter(
+    (f, i) =>
+      !findings.some(
+        (g, j) => j !== i && g.category === f.category && g.text.length > f.text.length && g.text.includes(f.text),
+      ),
+  )
 }
 
 export const CATEGORY_LABEL: Record<PrivacyCategory, string> = {

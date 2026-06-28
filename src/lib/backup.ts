@@ -36,13 +36,15 @@ function stamp(): string {
 
 // ── Full JSON backup (images embedded) ────────────────────────────────────
 export function exportJSON(articles: Article[], images: InkImage[], settings: Settings) {
+  // Never write secrets into a backup file — keys stay only in this browser.
+  const safeSettings: Settings = { ...settings, aiApiKey: '', imageApiKey: '' }
   const backup: Backup = {
     app: 'inkwell',
     version: 1,
     exportedAt: new Date().toISOString(),
     articles,
     images,
-    settings,
+    settings: safeSettings,
   }
   triggerDownload(new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' }), `inkwell-backup-${stamp()}.json`)
 }
