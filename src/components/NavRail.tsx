@@ -9,9 +9,13 @@ const NAV: { view: View; label: string; icon: IconName }[] = [
   { view: 'home', label: 'Home', icon: 'home' },
   { view: 'archive', label: 'Archive', icon: 'archive' },
   { view: 'craft', label: 'Writing Craft', icon: 'chart' },
-  // Book is a personal, still-evolving feature — kept out of the public demo.
-  ...(DEMO_MODE ? [] : ([{ view: 'book', label: 'Book', icon: 'book' }] as const)),
-  { view: 'config', label: 'Config Track', icon: 'config' },
+  // Book and the Config Track are personal features — kept out of the public demo.
+  ...(DEMO_MODE
+    ? []
+    : ([
+        { view: 'book', label: 'Book', icon: 'book' },
+        { view: 'config', label: 'Config Track', icon: 'config' },
+      ] as const)),
   { view: 'settings', label: 'Settings', icon: 'settings' },
 ]
 
@@ -77,7 +81,8 @@ const TABS: { view: View; label: string; icon: IconName }[] = [
   { view: 'home', label: 'Home', icon: 'home' },
   { view: 'archive', label: 'Archive', icon: 'archive' },
   { view: 'craft', label: 'Craft', icon: 'chart' },
-  { view: 'config', label: 'Config', icon: 'config' },
+  // Config Track is personal-only — omitted from the public demo's tab bar.
+  ...(DEMO_MODE ? [] : ([{ view: 'config', label: 'Config', icon: 'config' }] as const)),
   { view: 'settings', label: 'Settings', icon: 'settings' },
 ]
 
