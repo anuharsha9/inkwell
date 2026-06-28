@@ -92,4 +92,17 @@ export default defineConfig({
     alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) },
   },
   server: { port: 3120 },
+  build: {
+    rollupOptions: {
+      output: {
+        // Split heavy vendors into their own chunks so the main bundle stays lean.
+        manualChunks: {
+          anthropic: ['@anthropic-ai/sdk'],
+          react: ['react', 'react-dom'],
+          markdown: ['react-markdown', 'remark-gfm'],
+          jszip: ['jszip'],
+        },
+      },
+    },
+  },
 })

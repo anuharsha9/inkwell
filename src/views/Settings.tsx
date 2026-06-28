@@ -277,29 +277,24 @@ export function Settings() {
           />
         </section>
 
-        {/* ── Image AI ────────────────────────────────────────────── */}
+        {/* ── Image AI (Gemini / Imagen) ──────────────────────────── */}
         <section className="set-card">
-          <h2 className="set-title">Image generation</h2>
+          <h2 className="set-title">Image generation (Gemini)</h2>
           <p className="set-hint">
-            Point this at any image provider that speaks the OpenAI-style images API. Stored only on this device; nothing
-            is hardcoded. Leave blank and Upload / URL still work fully.
+            Cover and inline images are generated with Google's Imagen via the Gemini API. Your key is stored only on
+            this device — or set <code>VITE_GEMINI_KEY</code> in <code>.env.local</code> for your local build. Leave
+            blank and Upload / URL still work fully.
           </p>
           <Field
-            label="Endpoint"
-            placeholder="https://api.openai.com/v1/images/generations"
-            value={settings.imageApiEndpoint}
-            onChange={(v) => updateSettings({ imageApiEndpoint: v })}
-          />
-          <Field
-            label="API key"
+            label="Gemini API key"
             type="password"
-            placeholder="sk-…"
+            placeholder="AIza… (or set VITE_GEMINI_KEY in .env.local)"
             value={settings.imageApiKey}
             onChange={(v) => updateSettings({ imageApiKey: v })}
           />
           <Field
             label="Model"
-            placeholder="gpt-image-1"
+            placeholder="imagen-3.0-generate-002"
             value={settings.imageApiModel}
             onChange={(v) => updateSettings({ imageApiModel: v })}
           />

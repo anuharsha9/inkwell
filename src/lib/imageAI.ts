@@ -1,21 +1,20 @@
 import type { Settings } from '@/types'
 
 // ─────────────────────────────────────────────────────────────────────────
-// AI image generation — behind a small adapter so the provider can be swapped
-// (PRD §5.5). NOTHING is hardcoded: endpoint, key and model come from Settings.
-// If unconfigured, callers show the "configure API key" state and upload/URL
-// keep working.
-//
-// The default adapter speaks the common OpenAI-style images shape:
-//   POST {endpoint}  Authorization: Bearer {key}
-//   body { model, prompt, n, size, response_format: 'b64_json' }
-//   → { data: [{ b64_json }] } or { data: [{ url }] }
-// Anuja can point `imageApiEndpoint` at any provider that matches, or replace
-// this function wholesale — it's the single seam.
+// AI image generation via Google's Imagen (Gemini API). The key comes from
+// Settings → Image generation, or from VITE_GEMINI_KEY in .env.local (local
+// only — never set it on a public deploy). If unconfigured, callers show the
+// "configure" state and upload/URL paths keep working.
 // ─────────────────────────────────────────────────────────────────────────
 
+const ENV_GEMINI_KEY = (import.meta.env.VITE_GEMINI_KEY ?? '').trim()
+
+function imageKey(s: Settings): string {
+  return s.imageApiKey.trim() || ENV_GEMINI_KEY
+}
+
 export function isImageAIConfigured(s: Settings): boolean {
-  return Boolean(s.imageApiEndpoint.trim() && s.imageApiKey.trim())
+  return Boolean(imageKey(s))
 }
 
 export interface GenerateResult {
@@ -23,23 +22,21 @@ export interface GenerateResult {
 }
 
 export async function generateImage(prompt: string, s: Settings): Promise<GenerateResult> {
-  if (!isImageAIConfigured(s)) {
-    throw new Error('Image AI is not configured. Add an endpoint and API key in Settings.')
-  }
-  const res = await fetch(s.imageApiEndpoint.trim(), {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${s.imageApiKey.trim()}`,
+  const key = imageKey(s)
+  if (!key) throw new Error('Image AI is not configured. Add a Gemini API key in Settings (or .env.local).')
+
+  const model = s.imageApiModel.trim() || 'imagen-3.0-generate-002'
+  const res = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/${model}:predict?key=${encodeURIComponent(key)}`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        instances: [{ prompt }],
+        parameters: { sampleCount: 1, aspectRatio: '16:9' },
+      }),
     },
-    body: JSON.stringify({
-      model: s.imageApiModel.trim() || 'gpt-image-1',
-      prompt,
-      n: 1,
-      size: '1536x1024',
-      response_format: 'b64_json',
-    }),
-  })
+  )
 
   if (!res.ok) {
     const text = await res.text().catch(() => '')
@@ -47,14 +44,14 @@ export async function generateImage(prompt: string, s: Settings): Promise<Genera
   }
 
   const json = await res.json()
-  const item = json?.data?.[0]
-  if (item?.b64_json) return { dataUrl: `data:image/png;base64,${item.b64_json}` }
-  if (item?.url) return { dataUrl: item.url }
-  throw new Error('Unexpected response shape from the image provider.')
+  const pred = json?.predictions?.[0]
+  const b64 = pred?.bytesBase64Encoded
+  const mime = pred?.mimeType || 'image/png'
+  if (!b64) throw new Error('Unexpected response from Gemini — no image returned.')
+  return { dataUrl: `data:${mime};base64,${b64}` }
 }
 
-// Local heuristic prompt from title + hook (PRD §5.5) — a seam to later route
-// through a text model (Section 9). The style suffix is editable by her.
+// Local heuristic prompt from title + hook (a seam to a text model later).
 export function suggestPrompt(title: string, hook: string): string {
   const core = [title.trim(), hook.trim()].filter(Boolean).join(' — ')
   const subject = core || 'an abstract editorial concept'

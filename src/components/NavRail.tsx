@@ -9,7 +9,8 @@ const NAV: { view: View; label: string; icon: IconName }[] = [
   { view: 'home', label: 'Home', icon: 'home' },
   { view: 'archive', label: 'Archive', icon: 'archive' },
   { view: 'craft', label: 'Writing Craft', icon: 'chart' },
-  { view: 'book', label: 'Book', icon: 'book' },
+  // Book is a personal, still-evolving feature — kept out of the public demo.
+  ...(DEMO_MODE ? [] : ([{ view: 'book', label: 'Book', icon: 'book' }] as const)),
   { view: 'config', label: 'Config Track', icon: 'config' },
   { view: 'settings', label: 'Settings', icon: 'settings' },
 ]
@@ -70,33 +71,40 @@ export function NavRail() {
   )
 }
 
-// Mobile bottom tab bar — the "+New → idea" path must work on a phone (PRD §10.6).
+// Mobile chrome — a floating "Liquid Glass" tab bar (iOS 26 register) plus a
+// floating compose button. The "+New → idea" path works on a phone (PRD §10.6).
+const TABS: { view: View; label: string; icon: IconName }[] = [
+  { view: 'home', label: 'Home', icon: 'home' },
+  { view: 'archive', label: 'Archive', icon: 'archive' },
+  { view: 'craft', label: 'Craft', icon: 'chart' },
+  { view: 'config', label: 'Config', icon: 'config' },
+  { view: 'settings', label: 'Settings', icon: 'settings' },
+]
+
 export function TabBar() {
   const view = useStore((s) => s.view)
   const setView = useStore((s) => s.setView)
   const createArticle = useStore((s) => s.createArticle)
+  const inEditor = view === 'editor'
 
   return (
-    <div className="tabbar">
-      <button className={`tab ${view === 'home' ? 'active' : ''}`} onClick={() => setView('home')}>
-        <Icon name="home" size={20} />
-        Home
+    <>
+      <button className={`compose-fab ${inEditor ? 'hide' : ''}`} onClick={() => createArticle()} aria-label="New article">
+        <Icon name="plus" size={24} strokeWidth={2} />
       </button>
-      <button className={`tab ${view === 'archive' ? 'active' : ''}`} onClick={() => setView('archive')}>
-        <Icon name="archive" size={20} />
-        Archive
-      </button>
-      <button className="tab fab" onClick={() => createArticle()} aria-label="New article">
-        <Icon name="plus" size={22} strokeWidth={2} />
-      </button>
-      <button className={`tab ${view === 'config' ? 'active' : ''}`} onClick={() => setView('config')}>
-        <Icon name="config" size={20} />
-        Config
-      </button>
-      <button className={`tab ${view === 'settings' ? 'active' : ''}`} onClick={() => setView('settings')}>
-        <Icon name="settings" size={20} />
-        Settings
-      </button>
-    </div>
+      <nav className={`tabbar ${inEditor ? 'hide' : ''}`} aria-label="Primary">
+        {TABS.map((t) => (
+          <button
+            key={t.view}
+            className={`tab ${view === t.view ? 'active' : ''}`}
+            onClick={() => setView(t.view)}
+            aria-current={view === t.view ? 'page' : undefined}
+          >
+            <Icon name={t.icon} size={22} />
+            <span>{t.label}</span>
+          </button>
+        ))}
+      </nav>
+    </>
   )
 }
