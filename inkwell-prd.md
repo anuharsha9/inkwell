@@ -223,11 +223,16 @@ Inkwell is local-first and honest about what the AI does; she controls all of it
 18. Nothing, anywhere, can cause loss of written work. **[✓]**
 19. Responsive to mobile; reduced-motion + visible focus respected; no-emoji. **[✓]**
 
-## 11. Roadmap — designed, committed, not yet built **[NEXT]**
+## 11. Recently built (was the roadmap)
 
-- **Writing Craft — the longitudinal teacher.** Reads across her *whole* body of work (not just one draft) and tracks her growth over time: recurring strengths, habits to retire, vocabulary range, sentence-rhythm trends — evolving as she writes more, so "the more I write, the better I get" becomes visible and measurable. The natural completion of the teaching vision.
-- **Motivation & momentum.** Writing streaks/bursts over time, gentle nudges, and encouragement in the interface's own voice — rewarding the practice, not nagging.
-- **Book mode.** Compile a book from her articles: select pieces, order them into chapters, live manuscript preview (title page + chapters), export — with an AI "outline/compile a book from my writing" assist.
+- **Writing Craft — the longitudinal teacher [BUILT].** Reads across her *whole* body of work and tracks growth over time: corpus stats (pieces, words, avg readability, sentence variety), a month-by-month trend chart, rule-based **tendencies** (habits to work on / what's working, derived honestly from the local metrics), a one-line **focus for next pieces**, and an optional AI "read across my writing." All local; "the more I write, the better I get" made visible.
+- **Momentum [BUILT].** A calm Home strip — writing streak, words this week, pieces published — rewarding the practice, never nagging; links into Writing Craft.
+- **Book mode [BUILT].** Compile a book from her articles: pick pieces, order them into chapters (reorder/remove), set a title, preview the full manuscript (title page + contents + chapters), and export a single combined markdown file. Persisted.
+
+### Still open **[NEXT]**
+- Craft/Book aren't on the mobile tab bar yet (desktop rail only); reachable on mobile via the momentum link / deep links.
+- The 3-vs-5 "ready" seed-count discrepancy is still her call (1-click inline flip).
+- Optional: an AI "compile/outline a book from my writing" assist on top of Book mode.
 
 ## 12. Future (DO NOT BUILD YET — architect to allow) **[FUTURE]**
 
