@@ -1,0 +1,196 @@
+/* ═══════════════════════════════════════════════════════════════════════
+   Inkwell — design tokens.
+   Reference: the Moleskine iOS app family (Timepage, Actions, Flow, Journal).
+   Shared DNA → warm paper-neutral canvas · white floating cards · ONE
+   confident signature accent (themeable) · dot motifs · big focal numbers ·
+   generous air · soft rounded geometry · smooth quiet transitions · rich
+   warm dark mode. No texture, no skeuomorphism, no emoji.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+:root {
+  /* ── Type ─────────────────────────────────────────────────────────── */
+  --font-ui: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-display: 'Fraunces', Georgia, serif;
+  --font-read: 'Newsreader', Georgia, serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, 'SF Mono', monospace;
+
+  /* ── The signature accent (user-themeable, Moleskine-app style) ───────
+     --accent-user is set inline by Settings; falls back to ink indigo. */
+  --accent: var(--accent-user, #3f4ba8); /* ink indigo */
+  --accent-press: color-mix(in srgb, var(--accent) 86%, #000);
+  --accent-tint: color-mix(in srgb, var(--accent) 12%, transparent);
+  --accent-tint-soft: color-mix(in srgb, var(--accent) 7%, transparent);
+  --on-accent: #ffffff;
+
+  /* ── Light theme — warm paper canvas, white cards ──────────────────── */
+  --canvas: #f4f1ea; /* the warm paper-neutral ground */
+  --canvas-sunk: #ece8dd; /* recessed wells (search, insets) */
+  --surface: #fffefb; /* floating cards */
+  --surface-2: #faf8f2; /* secondary surface */
+  --surface-hover: #f6f3ec;
+
+  --ink: #232020; /* primary text, warm near-black */
+  --ink-soft: #6a655c; /* secondary */
+  --ink-faint: #9b948684; /* tertiary / placeholders (with alpha) */
+  --ink-mute: #968f81; /* muted solid */
+
+  --line: #e4ded1; /* hairline borders */
+  --line-strong: #d6cfbe;
+
+  --shadow-sm: 0 1px 2px rgba(40, 34, 24, 0.04), 0 1px 3px rgba(40, 34, 24, 0.05);
+  --shadow-md: 0 2px 6px rgba(40, 34, 24, 0.05), 0 6px 18px rgba(40, 34, 24, 0.07);
+  --shadow-lg: 0 8px 24px rgba(40, 34, 24, 0.1), 0 18px 48px rgba(40, 34, 24, 0.12);
+  --shadow-accent: 0 4px 14px color-mix(in srgb, var(--accent) 28%, transparent);
+
+  /* ── Status colors — muted, considered (PRD §7) ─────────────────────── */
+  --status-idea: #97917f; /* faded pencil */
+  --status-drafting: #b07d35; /* ochre ink, drying */
+  --status-ready: #5b8a52; /* sage — the "go" / dopamine */
+  --status-published: #5566a3; /* set ink */
+
+  /* ── Geometry & motion ──────────────────────────────────────────────── */
+  --r-sm: 8px;
+  --r-md: 12px;
+  --r-lg: 18px;
+  --r-xl: 24px;
+  --r-pill: 999px;
+
+  --ease: cubic-bezier(0.4, 0.1, 0.2, 1);
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --t-fast: 120ms;
+  --t-med: 200ms;
+  --t-slow: 340ms;
+
+  --maxw: 1200px;
+  --rail: 232px; /* left nav rail width */
+}
+
+/* ── Dark theme — the notebook at night, accent pops ───────────────────── */
+[data-theme='dark'] {
+  --canvas: #16140f;
+  --canvas-sunk: #100e0a;
+  --surface: #211e18;
+  --surface-2: #1b1813;
+  --surface-hover: #2a261f;
+
+  --ink: #ece4d3;
+  --ink-soft: #a59d8c;
+  --ink-faint: #8a82716e;
+  --ink-mute: #8e8676;
+
+  --line: #322d24;
+  --line-strong: #423b30;
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.34), 0 8px 22px rgba(0, 0, 0, 0.3);
+  --shadow-lg: 0 10px 30px rgba(0, 0, 0, 0.46), 0 22px 56px rgba(0, 0, 0, 0.4);
+
+  --accent: var(--accent-user-dark, #8b95e8); /* lifted indigo for dark ground */
+  --accent-press: color-mix(in srgb, var(--accent) 88%, #fff);
+  --on-accent: #16140f;
+
+  --status-idea: #a39d8b;
+  --status-drafting: #cf9c4e;
+  --status-ready: #7fae74;
+  --status-published: #8b99d6;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   Base
+   ═══════════════════════════════════════════════════════════════════════ */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-ui);
+  background: var(--canvas);
+  color: var(--ink);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  transition: background var(--t-med) var(--ease), color var(--t-med) var(--ease);
+}
+
+h1,
+h2,
+h3,
+h4,
+p {
+  margin: 0;
+}
+
+button {
+  font-family: inherit;
+  font-size: inherit;
+  color: inherit;
+  cursor: pointer;
+  border: none;
+  background: none;
+}
+
+input,
+textarea,
+select {
+  font-family: inherit;
+  font-size: inherit;
+  color: inherit;
+}
+
+a {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+/* Visible, consistent keyboard focus everywhere (PRD §7). */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+:focus:not(:focus-visible) {
+  outline: none;
+}
+
+::selection {
+  background: var(--accent-tint);
+}
+
+/* Custom scrollbars — quiet, paper-toned. */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--line-strong) transparent;
+}
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+*::-webkit-scrollbar-thumb {
+  background: var(--line-strong);
+  border-radius: 999px;
+  border: 3px solid transparent;
+  background-clip: content-box;
+}
+*::-webkit-scrollbar-thumb:hover {
+  background: var(--ink-mute);
+  background-clip: content-box;
+}
+
+/* Respect reduced-motion (PRD §7). */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
