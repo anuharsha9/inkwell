@@ -2,6 +2,7 @@ import { create } from 'zustand'
 import type { Article, InkImage, Phase, Platform, Settings, Status, Tag } from '@/types'
 import * as db from '@/lib/storage'
 import { countWords, nowISO, uuid } from '@/lib/text'
+import { removeArticleFile, syncArticleFile } from '@/lib/localArchive'
 
 // ─────────────────────────────────────────────────────────────────────────
 // Inkwell store. In-memory state updates are synchronous (instant UI); writes
@@ -94,7 +95,10 @@ export const useStore = create<InkState>((set, get) => {
       setTimeout(async () => {
         pendingTimers.delete(id)
         const a = get().articles[id]
-        if (a) await db.putArticle(a)
+        if (a) {
+          await db.putArticle(a)
+          void syncArticleFile(a) // mirror to a real .md file in the project folder
+        }
         set({ saveState: 'saved' })
       }, 500),
     )
@@ -107,7 +111,10 @@ export const useStore = create<InkState>((set, get) => {
       pendingTimers.delete(id)
     }
     const a = get().articles[id]
-    if (a) await db.putArticle(a)
+    if (a) {
+      await db.putArticle(a)
+      void syncArticleFile(a)
+    }
     set({ saveState: 'saved' })
   }
 
@@ -264,6 +271,7 @@ export const useStore = create<InkState>((set, get) => {
 
     async removeArticle(id) {
       const prev = get().articles[id]
+      if (prev) void removeArticleFile(prev)
       set((s) => {
         const articles = { ...s.articles }
         delete articles[id]

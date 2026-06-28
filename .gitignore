@@ -17,3 +17,6 @@ dist-ssr
 *.log
 .DS_Store
 *.local
+
+# her actual writing — saved locally, never pushed (remove this line to back it up to git)
+articles/
