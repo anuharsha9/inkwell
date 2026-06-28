@@ -20,3 +20,6 @@ dist-ssr
 
 # her actual writing — saved locally, never pushed (remove this line to back it up to git)
 articles/
+
+# build info
+*.tsbuildinfo
