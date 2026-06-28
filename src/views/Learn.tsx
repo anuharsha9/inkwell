@@ -46,9 +46,9 @@ const FEATURES: Feature[] = [
     body: 'Catches passages you’ve reused across your own pieces (locally, instantly) and, with web search, flags lines that match published material — so your work stays yours.',
   },
   {
-    icon: 'config',
-    title: 'A talk that assembles itself',
-    body: 'Tag pieces that feed a conference talk and they gather into a living proposal with a thesis, a deadline countdown, and a word-count helper — built up across a year of writing.',
+    icon: 'chart',
+    title: 'A mirror for your craft',
+    body: 'Writing Craft reads across everything you’ve written — readability, sentence rhythm, lexical range, the habits you lean on and the strengths that recur — then distills a close read of your voice that sharpens the more you write.',
   },
 ]
 
