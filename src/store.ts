@@ -63,6 +63,10 @@ interface InkState {
   markPublished: (id: string, platforms?: Platform[]) => void
   removeArticle: (id: string) => Promise<void>
 
+  // version history
+  snapshotVersion: (id: string, reason: string) => void
+  restoreVersion: (id: string, body: string) => void
+
   // images
   addImage: (img: InkImage) => void
   updateImage: (id: string, patch: Partial<InkImage>) => void
@@ -85,6 +89,11 @@ const STATUS_CYCLE: Status[] = ['idea', 'drafting', 'ready', 'published']
 // Per-article debounced persistence. A pending timer per id coalesces rapid
 // keystrokes into one write; the indicator flips saving → saved when it lands.
 const pendingTimers = new Map<string, ReturnType<typeof setTimeout>>()
+
+// Throttle for automatic version snapshots — at most one "autosave" snapshot
+// per article per window, capturing the body as it was when editing began.
+const lastSnapAt = new Map<string, number>()
+const AUTOSNAP_MS = 5 * 60 * 1000
 
 export const useStore = create<InkState>((set, get) => {
   function persistArticleDebounced(id: string) {
@@ -220,11 +229,35 @@ export const useStore = create<InkState>((set, get) => {
     updateArticle(id, patch, opts) {
       const prev = get().articles[id]
       if (!prev) return
+      // Periodic safety snapshot — capture the body as it was when this editing
+      // window began, before applying the change (throttled so it never floods).
+      if (patch.body !== undefined && patch.body !== prev.body && prev.body.trim()) {
+        const last = lastSnapAt.get(id) ?? 0
+        if (Date.now() - last > AUTOSNAP_MS) {
+          lastSnapAt.set(id, Date.now())
+          void db.saveVersion(id, prev.body, 'autosave')
+        }
+      }
       const next: Article = { ...prev, ...patch, updatedAt: nowISO() }
       if (patch.body !== undefined) next.wordCount = countWords(patch.body)
       set((s) => ({ articles: { ...s.articles, [id]: next } }))
       if (opts?.immediate) void persistArticleNow(id)
       else persistArticleDebounced(id)
+    },
+
+    snapshotVersion(id, reason) {
+      const a = get().articles[id]
+      if (a && a.body.trim()) {
+        lastSnapAt.set(id, Date.now())
+        void db.saveVersion(id, a.body, reason)
+      }
+    },
+
+    restoreVersion(id, body) {
+      const a = get().articles[id]
+      if (!a) return
+      if (a.body.trim() && a.body !== body) void db.saveVersion(id, a.body, 'before restore')
+      get().updateArticle(id, { body }, { immediate: true })
     },
 
     setStatus(id, status) {
@@ -290,6 +323,7 @@ export const useStore = create<InkState>((set, get) => {
         }
       }
       await db.deleteArticle(id)
+      void db.deleteVersionsFor(id)
     },
 
     addImage(img) {

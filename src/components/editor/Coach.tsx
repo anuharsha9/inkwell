@@ -110,6 +110,7 @@ export function Coach({
 function ImproveTab({ article }: { article: Article }) {
   const settings = useStore((s) => s.settings)
   const updateArticle = useStore((s) => s.updateArticle)
+  const snapshotVersion = useStore((s) => s.snapshotVersion)
   const push = useToast((s) => s.push)
   const [busy, setBusy] = useState('')
   const [error, setError] = useState('')
@@ -147,6 +148,7 @@ function ImproveTab({ article }: { article: Article }) {
   function applyDraft() {
     if (!draft) return
     const body = article.body
+    snapshotVersion(article.id, `before ${draft.label}`) // restorable from History
     if (draft.mode === 'append') {
       const sep = body.trim() ? body.replace(/\s+$/, '') + '\n\n' : ''
       updateArticle(article.id, { body: sep + draft.text })
@@ -157,13 +159,15 @@ function ImproveTab({ article }: { article: Article }) {
       updateArticle(article.id, { body: draft.text })
     }
     setDraft(null)
-    push('Applied — autosaved')
+    push('Applied — autosaved', { label: 'Undo', run: () => updateArticle(article.id, { body }) })
   }
 
   function applySuggestion(sg: Suggestion, i: number) {
     if (sg.before && sg.after !== undefined && article.body.includes(sg.before)) {
-      updateArticle(article.id, { body: article.body.replace(sg.before, sg.after) })
-      push('Applied')
+      const body = article.body
+      snapshotVersion(article.id, 'before suggestion')
+      updateArticle(article.id, { body: body.replace(sg.before, sg.after) })
+      push('Applied', { label: 'Undo', run: () => updateArticle(article.id, { body }) })
       setSuggestions((prev) => (prev ? prev.filter((_, j) => j !== i) : prev))
     } else if (sg.after) {
       void copyText(sg.after).then(() => push('Copied suggestion'))
@@ -462,6 +466,7 @@ function VocabTab({ article }: { article: Article }) {
 function ChecksTab({ article }: { article: Article }) {
   const settings = useStore((s) => s.settings)
   const updateArticle = useStore((s) => s.updateArticle)
+  const snapshotVersion = useStore((s) => s.snapshotVersion)
   const allArticles = useStore((s) => s.articles)
   const push = useToast((s) => s.push)
   const configured = isAIConfigured(settings)
@@ -519,8 +524,10 @@ function ChecksTab({ article }: { article: Article }) {
 
   function apply(f: PrivacyFinding) {
     if (article.body.includes(f.text)) {
-      updateArticle(article.id, { body: article.body.replace(f.text, f.suggestion) })
-      push(f.suggestion ? 'Replaced' : 'Removed')
+      const body = article.body
+      snapshotVersion(article.id, 'before privacy fix')
+      updateArticle(article.id, { body: body.replace(f.text, f.suggestion) })
+      push(f.suggestion ? 'Replaced' : 'Removed', { label: 'Undo', run: () => updateArticle(article.id, { body }) })
     }
     setAiFindings((prev) => prev.filter((g) => fkey(g) !== fkey(f)))
   }

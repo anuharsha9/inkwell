@@ -68,32 +68,50 @@ export function NumberBadge({ number }: { number: number | null }) {
 // ═══════════════════════════════════════════════════════════════════════
 // Toast — quiet confirmations (the "copied!" moment, PRD §5.3).
 // ═══════════════════════════════════════════════════════════════════════
+interface ToastAction {
+  label: string
+  run: () => void
+}
 interface ToastItem {
   id: number
   text: string
+  action?: ToastAction
 }
 interface ToastState {
   items: ToastItem[]
-  push: (text: string) => void
+  push: (text: string, action?: ToastAction) => void
 }
 let toastSeq = 0
 export const useToast = create<ToastState>((set) => ({
   items: [],
-  push(text) {
+  push(text, action) {
     const id = ++toastSeq
-    set((s) => ({ items: [...s.items, { id, text }] }))
-    setTimeout(() => set((s) => ({ items: s.items.filter((t) => t.id !== id) })), 2000)
+    set((s) => ({ items: [...s.items, { id, text, action }] }))
+    // Give an actionable toast (e.g. Undo) longer to be clicked.
+    setTimeout(() => set((s) => ({ items: s.items.filter((t) => t.id !== id) })), action ? 6000 : 2000)
   },
 }))
 
 export function Toaster() {
   const items = useToast((s) => s.items)
+  const dismiss = (id: number) => useToast.setState((s) => ({ items: s.items.filter((t) => t.id !== id) }))
   return (
     <div className="toast-wrap" aria-live="polite">
       {items.map((t) => (
         <div className="toast" key={t.id}>
           <Icon name="check" size={16} className="ok" strokeWidth={2} />
           {t.text}
+          {t.action && (
+            <button
+              className="toast-action"
+              onClick={() => {
+                t.action!.run()
+                dismiss(t.id)
+              }}
+            >
+              {t.action.label}
+            </button>
+          )}
         </div>
       ))}
     </div>

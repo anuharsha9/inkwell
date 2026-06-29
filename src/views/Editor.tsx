@@ -4,6 +4,7 @@ import { Icon } from '@/components/Icon'
 import { Menu, MenuItem } from '@/components/Menu'
 import { MetaPanel } from '@/components/editor/MetaPanel'
 import { Coach } from '@/components/editor/Coach'
+import { History } from '@/components/editor/History'
 import { Markdown } from '@/components/editor/Markdown'
 import { useCopyArticle } from '@/components/PublishActions'
 import { PLATFORM_META, PLATFORM_ORDER } from '@/lib/constants'
@@ -27,6 +28,7 @@ export function Editor() {
   const [confirmDel, setConfirmDel] = useState(false)
   const [metaOpen, setMetaOpen] = useState(false)
   const [coachOpen, setCoachOpen] = useState(false)
+  const [historyOpen, setHistoryOpen] = useState(false)
   const [coachTab, setCoachTab] = useState<'improve' | 'checks'>('improve')
   const bodyRef = useRef<HTMLTextAreaElement>(null)
 
@@ -65,10 +67,11 @@ export function Editor() {
   }
 
   const targets = article.platforms.length ? article.platforms : PLATFORM_ORDER
-  const privacyCount = localPrivacyScan(article.body).length
+  const privacyCount = localPrivacyScan(article.body, settings.privacyTerms).length
 
   function openCoach(tab: 'improve' | 'checks') {
     setCoachTab(tab)
+    setHistoryOpen(false)
     setCoachOpen(true)
   }
 
@@ -104,6 +107,15 @@ export function Editor() {
               Split
             </button>
           </div>
+
+          <button
+            className="icon-btn"
+            onClick={() => (historyOpen ? setHistoryOpen(false) : (setCoachOpen(false), setHistoryOpen(true)))}
+            title="Version history"
+            aria-label="Version history"
+          >
+            <Icon name="reroll" size={18} />
+          </button>
 
           <button
             className={`btn ${coachOpen ? 'btn-primary' : 'btn-soft'}`}
@@ -218,6 +230,13 @@ export function Editor() {
         <>
           <div className="coach-scrim" onClick={() => setCoachOpen(false)} />
           <Coach key={coachTab} article={article} onClose={() => setCoachOpen(false)} initialTab={coachTab} />
+        </>
+      )}
+
+      {historyOpen && (
+        <>
+          <div className="coach-scrim" onClick={() => setHistoryOpen(false)} />
+          <History article={article} onClose={() => setHistoryOpen(false)} />
         </>
       )}
 

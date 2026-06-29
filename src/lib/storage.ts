@@ -17,8 +17,9 @@ import { DEMO_MODE } from '@/lib/env'
 // Demo mode uses a separate database so a public visitor's tinkering never
 // touches (or reveals) her real local data.
 const DB_NAME = DEMO_MODE ? 'inkwell-demo' : 'inkwell'
-const DB_VERSION = 1
+const DB_VERSION = 2
 const SEEDED_KEY = 'seeded:v1'
+const MAX_VERSIONS = 25 // snapshots kept per article
 
 export const DEFAULT_SETTINGS: Settings = {
   substackUrl: '',
@@ -54,6 +55,12 @@ function getDB(): Promise<IDBPDatabase> {
         if (!db.objectStoreNames.contains('articles')) db.createObjectStore('articles', { keyPath: 'id' })
         if (!db.objectStoreNames.contains('images')) db.createObjectStore('images', { keyPath: 'id' })
         if (!db.objectStoreNames.contains('meta')) db.createObjectStore('meta')
+        // v2 — per-article version history + cached semantic embeddings.
+        if (!db.objectStoreNames.contains('versions')) {
+          const vs = db.createObjectStore('versions', { keyPath: 'id' })
+          vs.createIndex('articleId', 'articleId')
+        }
+        if (!db.objectStoreNames.contains('embeddings')) db.createObjectStore('embeddings', { keyPath: 'id' })
       },
     })
   }
@@ -127,6 +134,60 @@ export async function loadVocab(): Promise<SavedWord[]> {
 export async function saveVocab(words: SavedWord[]): Promise<void> {
   const db = await getDB()
   await db.put('meta', words, 'vocab')
+}
+
+// ── Version history (per-article snapshots, PRD §6 — never lose work) ──────
+export interface Version {
+  id: string // `${articleId}:${ts}`
+  articleId: string
+  ts: string // ISO
+  body: string
+  reason: string // why it was snapshotted ("before Tighten", "autosave", …)
+}
+
+export async function saveVersion(articleId: string, body: string, reason: string): Promise<void> {
+  const db = await getDB()
+  const ts = new Date().toISOString()
+  await db.put('versions', { id: `${articleId}:${ts}`, articleId, ts, body, reason })
+  // Prune to the most recent MAX_VERSIONS for this article.
+  const all = (await db.getAllFromIndex('versions', 'articleId', articleId)) as Version[]
+  if (all.length > MAX_VERSIONS) {
+    const toDrop = all.sort((a, b) => a.ts.localeCompare(b.ts)).slice(0, all.length - MAX_VERSIONS)
+    const tx = db.transaction('versions', 'readwrite')
+    await Promise.all(toDrop.map((v) => tx.store.delete(v.id)))
+    await tx.done
+  }
+}
+
+export async function loadVersions(articleId: string): Promise<Version[]> {
+  const db = await getDB()
+  const all = (await db.getAllFromIndex('versions', 'articleId', articleId)) as Version[]
+  return all.sort((a, b) => b.ts.localeCompare(a.ts)) // newest first
+}
+
+export async function deleteVersionsFor(articleId: string): Promise<void> {
+  const db = await getDB()
+  const all = (await db.getAllFromIndex('versions', 'articleId', articleId)) as Version[]
+  const tx = db.transaction('versions', 'readwrite')
+  await Promise.all(all.map((v) => tx.store.delete(v.id)))
+  await tx.done
+}
+
+// ── Cached semantic embeddings (one vector per article, keyed by content) ──
+export interface StoredEmbedding {
+  id: string // articleId
+  hash: string // content hash so we know when to recompute
+  vector: number[]
+}
+
+export async function loadEmbedding(id: string): Promise<StoredEmbedding | undefined> {
+  const db = await getDB()
+  return (await db.get('embeddings', id)) as StoredEmbedding | undefined
+}
+
+export async function saveEmbedding(e: StoredEmbedding): Promise<void> {
+  const db = await getDB()
+  await db.put('embeddings', e)
 }
 
 // ── First-run seed (PRD §8) ──────────────────────────────────────────────
