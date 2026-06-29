@@ -693,3 +693,117 @@ button.pill:hover {
     border-radius: var(--r-xl);
   }
 }
+
+/* ── Guided demo tour ─────────────────────────────────────────────────────
+   Spotlight overlay + coachmark, in the Moleskine register. Demo-only. */
+.tour-root {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+}
+.tour-block {
+  position: fixed;
+  inset: 0;
+}
+.tour-block.dim {
+  background: rgba(20, 17, 12, 0.62);
+}
+.tour-spot {
+  position: fixed;
+  border-radius: 12px;
+  box-shadow: 0 0 0 9999px rgba(20, 17, 12, 0.62);
+  pointer-events: none;
+  transition: top 0.2s ease, left 0.2s ease, width 0.2s ease, height 0.2s ease;
+}
+.tour-card {
+  position: fixed;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  padding: 18px 20px 16px;
+  box-shadow: var(--shadow-lg);
+  outline: none;
+}
+.tour-step-label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 4px;
+}
+.tour-card-title {
+  font-family: var(--font-display);
+  font-size: 19px;
+  font-weight: 600;
+  color: var(--ink);
+  line-height: 1.2;
+}
+.tour-card-body {
+  font-family: var(--font-read);
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--ink-soft);
+  margin-top: 8px;
+}
+.tour-card-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 18px;
+}
+.tour-skip {
+  background: none;
+  border: none;
+  padding: 4px 2px;
+  font-family: var(--font-ui);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink-mute);
+  cursor: pointer;
+}
+.tour-skip:hover {
+  color: var(--ink);
+}
+.tour-nav {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.tour-nav .btn {
+  padding: 6px 16px;
+  font-size: 13px;
+}
+.tour-launch {
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  z-index: 200;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 10px 16px;
+  border: none;
+  border-radius: 999px;
+  background: var(--accent);
+  color: #fff;
+  font-family: var(--font-ui);
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: var(--shadow-accent), var(--shadow-md);
+}
+.tour-launch:hover {
+  filter: brightness(1.05);
+}
+@media (max-width: 760px) {
+  .tour-launch {
+    bottom: 88px; /* clear the floating mobile tab bar */
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .tour-spot {
+    transition: none;
+  }
+}

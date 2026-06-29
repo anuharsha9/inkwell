@@ -11,6 +11,7 @@ import { Craft } from './views/Craft'
 import { Book } from './views/Book'
 import { Sources } from './views/Sources'
 import { Settings } from './views/Settings'
+import { TourController } from './components/tour/TourController'
 import { applyAccent, clearAccent } from './lib/accent'
 
 export function App() {
@@ -60,6 +61,7 @@ export function App() {
       </main>
       <TabBar />
       <Toaster />
+      <TourController />
     </div>
   )
 }

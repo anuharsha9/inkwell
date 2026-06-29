@@ -13,7 +13,7 @@ export function Dashboard() {
   return (
     <div className="dash">
       {/* The single most useful number, emphasized (PRD §5.1). */}
-      <div className="dash-hero">
+      <div className="dash-hero" data-tour="home-hero">
         <div className="num">{c.readyNow}</div>
         <div className="lbl">ready to publish right now</div>
       </div>

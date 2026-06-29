@@ -121,6 +121,7 @@ export function Editor() {
             className={`btn ${coachOpen ? 'btn-primary' : 'btn-soft'}`}
             onClick={() => (coachOpen ? setCoachOpen(false) : openCoach('improve'))}
             title="Writing Coach"
+            data-tour="coach-btn"
           >
             <Icon name="spark" size={15} /> Coach
           </button>

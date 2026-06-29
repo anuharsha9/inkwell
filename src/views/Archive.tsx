@@ -26,7 +26,7 @@ export function Archive() {
 
   return (
     <>
-      <div className="page-head">
+      <div className="page-head" data-tour="archive-head">
         <div>
           <h1 className="page-title">The Archive</h1>
           <div className="page-sub">Your full inventory — write ahead, publish on a whim.</div>

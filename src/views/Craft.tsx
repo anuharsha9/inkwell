@@ -60,7 +60,7 @@ export function Craft() {
       ) : (
         <div className="craft">
           {/* Headline numbers across the corpus */}
-          <div className="craft-stats">
+          <div className="craft-stats" data-tour="craft-stats">
             <Stat num={report.pieces} label="pieces with substance" />
             <Stat num={report.totalWords.toLocaleString()} label="words written" />
             <Stat num={report.avg.readingEase} label="avg reading ease" sub={easeLabel(report.avg.readingEase)} />
