@@ -745,6 +745,69 @@
   background: var(--accent-tint-soft);
 }
 
+/* Vocabulary spaced-repetition review */
+.vocab-review-start {
+  margin-bottom: 8px;
+}
+.vocab-review {
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  padding: 12px 14px;
+  margin-bottom: 10px;
+  background: var(--surface);
+}
+.vocab-review-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+.vocab-review-card {
+  text-align: center;
+  padding: 8px 4px 4px;
+}
+.vocab-review-card .vocab-word {
+  font-family: var(--font-display, var(--font-read));
+  font-size: 22px;
+  font-weight: 600;
+  display: block;
+}
+.vocab-review-card .vocab-pos {
+  display: inline-block;
+  margin-top: 8px;
+}
+.vocab-grade-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-top: 14px;
+}
+.vocab-grade {
+  padding: 8px 0;
+  border-radius: var(--r-sm, 8px);
+  border: 1px solid var(--line);
+  background: var(--surface);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.vocab-grade.again {
+  color: var(--status-drafting, #c0623a);
+  border-color: color-mix(in srgb, var(--status-drafting, #c0623a) 40%, transparent);
+}
+.vocab-grade.good {
+  color: var(--accent);
+  border-color: color-mix(in srgb, var(--accent) 40%, transparent);
+}
+.vocab-grade.easy {
+  color: var(--status-ready, #3a8a5a);
+  border-color: color-mix(in srgb, var(--status-ready, #3a8a5a) 40%, transparent);
+}
+.vocab-grade:hover {
+  filter: brightness(1.05);
+  background: var(--accent-tint-soft);
+}
+
 @media (max-width: 760px) {
   .craft-stats {
     grid-template-columns: repeat(2, 1fr);

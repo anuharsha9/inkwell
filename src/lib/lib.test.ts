@@ -4,6 +4,7 @@ import { analyze, readiness, mattr, countSyllables } from './textmetrics'
 import { publishedBaseline } from './craft'
 import { localPrivacyScan } from './privacy'
 import { selfOverlap, nearDuplicates } from './plagiarism'
+import { reviewCard, isDue, type SrsState } from './srs'
 import type { Article } from '@/types'
 
 function article(over: Partial<Article> = {}): Article {
@@ -192,6 +193,33 @@ describe('near-duplicate echoes', () => {
     const a = article({ id: 'a', body: 'A wholly original meditation on color, grids, and the discipline of layout.' })
     const b = article({ id: 'b', body: 'An unrelated account of violins, tempo, and the patience that music demands.' })
     expect(nearDuplicates(a, [a, b])).toHaveLength(0)
+  })
+})
+
+describe('spaced repetition', () => {
+  const fresh: SrsState = { due: '2026-01-01T00:00:00.000Z', interval: 0, ease: 2.5, reps: 0, lapses: 0 }
+  const now = new Date('2026-06-01T00:00:00.000Z').getTime()
+
+  it('schedules further out as recall succeeds', () => {
+    const r1 = reviewCard(fresh, 'good', now)
+    expect(r1.reps).toBe(1)
+    expect(r1.interval).toBe(1)
+    const r2 = reviewCard(r1, 'good', now)
+    expect(r2.interval).toBe(3)
+    const r3 = reviewCard(r2, 'good', now)
+    expect(r3.interval).toBeGreaterThan(3) // interval * ease
+  })
+  it('resets and lowers ease on a lapse', () => {
+    const learned = reviewCard(reviewCard(fresh, 'good', now), 'good', now)
+    const lapsed = reviewCard(learned, 'again', now)
+    expect(lapsed.reps).toBe(0)
+    expect(lapsed.lapses).toBe(1)
+    expect(lapsed.ease).toBeLessThan(learned.ease)
+    expect(lapsed.interval).toBe(0)
+  })
+  it('marks a future-due card as not due', () => {
+    const r = reviewCard(fresh, 'easy', now)
+    expect(isDue({ due: r.due }, now)).toBe(false)
   })
 })
 

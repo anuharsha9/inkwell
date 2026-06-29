@@ -3,6 +3,7 @@ import type { Article, InkImage, Phase, Platform, Settings, Status, Tag } from '
 import * as db from '@/lib/storage'
 import { countWords, nowISO, uuid } from '@/lib/text'
 import { removeArticleFile, syncArticleFile } from '@/lib/localArchive'
+import { reviewCard, type Grade } from '@/lib/srs'
 import { DEMO_MODE } from '@/lib/env'
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -77,8 +78,9 @@ interface InkState {
   updateSettings: (patch: Partial<Settings>) => void
 
   // vocabulary
-  addVocab: (word: db.SavedWord) => void
+  addVocab: (word: Omit<db.SavedWord, 'due' | 'interval' | 'ease' | 'reps' | 'lapses'>) => void
   removeVocab: (word: string) => void
+  reviewVocab: (word: string, grade: Grade) => void
 
   // backup
   importBackup: (articles: Article[], images: InkImage[], settings: Settings) => Promise<void>
@@ -368,13 +370,20 @@ export const useStore = create<InkState>((set, get) => {
 
     addVocab(word) {
       if (get().vocab.some((w) => w.word === word.word)) return
-      const next = [word, ...get().vocab]
+      const full: db.SavedWord = { ...word, due: nowISO(), interval: 0, ease: 2.5, reps: 0, lapses: 0 }
+      const next = [full, ...get().vocab]
       set({ vocab: next })
       void db.saveVocab(next)
     },
 
     removeVocab(word) {
       const next = get().vocab.filter((w) => w.word !== word)
+      set({ vocab: next })
+      void db.saveVocab(next)
+    },
+
+    reviewVocab(word, grade) {
+      const next = get().vocab.map((w) => (w.word === word ? { ...w, ...reviewCard(w, grade) } : w))
       set({ vocab: next })
       void db.saveVocab(next)
     },

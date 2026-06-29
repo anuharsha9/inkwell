@@ -8,6 +8,7 @@ import { copyText } from '@/lib/clipboard'
 import { lookupWord, type WordEntry } from '@/lib/dictionary'
 import { CATEGORY_LABEL, localPrivacyScan, type PrivacyFinding } from '@/lib/privacy'
 import { nearDuplicates, selfOverlap } from '@/lib/plagiarism'
+import { dueWords, type Grade } from '@/lib/srs'
 import { MetricsPanel } from '@/components/MetricsPanel'
 import {
   coachLesson,
@@ -353,11 +354,36 @@ function VocabTab({ article }: { article: Article }) {
   const vocab = useStore((s) => s.vocab)
   const addVocab = useStore((s) => s.addVocab)
   const removeVocab = useStore((s) => s.removeVocab)
+  const reviewVocab = useStore((s) => s.reviewVocab)
   const push = useToast((s) => s.push)
   const [term, setTerm] = useState('')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
   const [entry, setEntry] = useState<WordEntry | null>(null)
+
+  // Spaced-repetition review session (snapshot the due queue at start).
+  const due = useMemo(() => dueWords(vocab), [vocab])
+  const [queue, setQueue] = useState<string[] | null>(null)
+  const [idx, setIdx] = useState(0)
+  const [revealed, setRevealed] = useState(false)
+  const reviewWord = queue ? vocab.find((w) => w.word === queue[idx]) : undefined
+
+  function startReview() {
+    setQueue(due.map((w) => w.word))
+    setIdx(0)
+    setRevealed(false)
+  }
+  function grade(g: Grade) {
+    if (!reviewWord || !queue) return
+    reviewVocab(reviewWord.word, g)
+    setRevealed(false)
+    if (idx + 1 >= queue.length) {
+      setQueue(null)
+      push('Review complete')
+    } else {
+      setIdx(idx + 1)
+    }
+  }
 
   async function go(word?: string) {
     const w = (word ?? term).trim()
@@ -404,6 +430,50 @@ function VocabTab({ article }: { article: Article }) {
       <p className="coach-hint" style={{ marginTop: 0 }}>
         Real definitions from the dictionary — build a personal word bank to grow your range.
       </p>
+
+      {/* ── Spaced-repetition review ── */}
+      {queue && reviewWord ? (
+        <div className="vocab-review">
+          <div className="vocab-review-head">
+            <span className="coach-section-label" style={{ margin: 0 }}>
+              Review · {idx + 1}/{queue.length}
+            </span>
+            <button className="mini-btn" onClick={() => setQueue(null)}>
+              End
+            </button>
+          </div>
+          <div className="vocab-review-card">
+            <span className="vocab-word">{reviewWord.word}</span>
+            {revealed ? (
+              <>
+                <span className="vocab-pos">{reviewWord.partOfSpeech}</span>
+                <p className="vocab-def">{reviewWord.definition}</p>
+                <div className="vocab-grade-row">
+                  <button className="vocab-grade again" onClick={() => grade('again')}>
+                    Again
+                  </button>
+                  <button className="vocab-grade good" onClick={() => grade('good')}>
+                    Good
+                  </button>
+                  <button className="vocab-grade easy" onClick={() => grade('easy')}>
+                    Easy
+                  </button>
+                </div>
+              </>
+            ) : (
+              <button className="btn btn-soft btn-block" style={{ marginTop: 12 }} onClick={() => setRevealed(true)}>
+                Reveal definition
+              </button>
+            )}
+          </div>
+        </div>
+      ) : (
+        due.length > 0 && (
+          <button className="btn btn-primary btn-block vocab-review-start" onClick={startReview}>
+            <Icon name="reroll" size={15} /> Review {due.length} word{due.length === 1 ? '' : 's'} due
+          </button>
+        )
+      )}
 
       {error && <div className="ai-error">{error}</div>}
 

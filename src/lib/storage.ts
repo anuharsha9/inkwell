@@ -124,11 +124,33 @@ export interface SavedWord {
   definition: string
   partOfSpeech: string
   savedAt: string // ISO
+  // Spaced-repetition state (SM-2-lite). See lib/srs.ts.
+  due: string // ISO — when it's next due for review
+  interval: number // days until next review
+  ease: number // ease factor (starts 2.5)
+  reps: number // consecutive successful recalls
+  lapses: number // times forgotten
+}
+
+// Backfill SR fields for words saved before spaced repetition existed.
+function normalizeWord(w: Partial<SavedWord> & { word: string; definition: string; partOfSpeech: string; savedAt: string }): SavedWord {
+  return {
+    word: w.word,
+    definition: w.definition,
+    partOfSpeech: w.partOfSpeech,
+    savedAt: w.savedAt,
+    due: w.due ?? w.savedAt ?? new Date().toISOString(),
+    interval: w.interval ?? 0,
+    ease: w.ease ?? 2.5,
+    reps: w.reps ?? 0,
+    lapses: w.lapses ?? 0,
+  }
 }
 
 export async function loadVocab(): Promise<SavedWord[]> {
   const db = await getDB()
-  return ((await db.get('meta', 'vocab')) as SavedWord[] | undefined) ?? []
+  const raw = ((await db.get('meta', 'vocab')) as SavedWord[] | undefined) ?? []
+  return raw.map(normalizeWord)
 }
 
 export async function saveVocab(words: SavedWord[]): Promise<void> {
