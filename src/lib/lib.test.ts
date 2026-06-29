@@ -141,6 +141,14 @@ describe('privacy scan', () => {
     const f = localPrivacyScan('I earned six figures at the new job last year of work here.')
     expect(f.some((x) => x.category === 'finance')).toBe(true)
   })
+  it('does not flag bare counts as money', () => {
+    const f = localPrivacyScan('The system powered 20 million weekly jobs across the company.')
+    expect(f.some((x) => x.category === 'finance')).toBe(false)
+  })
+  it('still flags currency amounts and Indian money units', () => {
+    expect(localPrivacyScan('It cost ₹5 lakh that year.').some((x) => x.category === 'finance')).toBe(true)
+    expect(localPrivacyScan('They raised $20 million in funding.').some((x) => x.category === 'finance')).toBe(true)
+  })
   it('flags named companies and custom private terms', () => {
     const f = localPrivacyScan('I worked at TIBCO Software for years on hard things.', ['TIBCO'])
     expect(f.some((x) => x.category === 'company')).toBe(true)

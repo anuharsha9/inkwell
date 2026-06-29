@@ -38,15 +38,19 @@ const RULES: Rule[] = [
     note: 'A specific monetary amount — keep figures generic.',
   },
   {
+    // Indian money units strongly imply currency even without a symbol; bare
+    // "k/million/billion" are usually counts ("20 million jobs"), so they're left
+    // for the currency-symbol rule above to avoid false positives.
     category: 'finance',
-    re: /\b\d[\d,]*(?:\.\d+)?\s?(?:k|cr|crore|lakhs?|million|billion)\b/gi,
+    re: /\b\d[\d,]*(?:\.\d+)?\s?(?:cr|crore|lakhs?)\b/gi,
     suggestion: '[a generic figure]',
     note: 'A specific amount — keep figures generic.',
   },
   {
-    // Money written in words: "six figures", "twelve thousand rupees", "a few hundred dollars".
+    // Money written in words: "six figures", "twelve thousand rupees". Requires a
+    // currency word or "figures" so "twenty million users" isn't flagged.
     category: 'finance',
-    re: new RegExp(`\\b${NUM_WORD}[\\s-]?(?:figures?|${NUM_WORD})?[\\s-]?(?:dollars?|rupees?|figures?|lakhs?|crores?|thousand|million|billion)\\b`, 'gi'),
+    re: new RegExp(`\\b${NUM_WORD}[\\s-]?(?:${NUM_WORD})?[\\s-]?(?:dollars?|rupees?|figures?|lakhs?|crores?)\\b`, 'gi'),
     suggestion: '[a generic figure]',
     note: 'A figure written out — keep it generic.',
   },

@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useStore } from '@/store'
 import type { Article } from '@/types'
 import { Icon } from '@/components/Icon'
@@ -479,17 +479,22 @@ function ChecksTab({ article }: { article: Article }) {
   const [orig, setOrig] = useState('')
   const [origBusy, setOrigBusy] = useState(false)
 
+  // Debounce the body so the heavier passes don't recompute on every keystroke
+  // (matters once the archive is large).
+  const body = useDebounced(article.body, 300)
+  const debArticle = useMemo(() => ({ ...article, body }), [article, body])
+
   const localFindings = useMemo(
-    () => localPrivacyScan(article.body, settings.privacyTerms),
-    [article.body, settings.privacyTerms],
+    () => localPrivacyScan(body, settings.privacyTerms),
+    [body, settings.privacyTerms],
   )
   const overlaps = useMemo(
-    () => selfOverlap(article, Object.values(allArticles)).filter((m) => m.words >= 9),
-    [article, allArticles],
+    () => selfOverlap(debArticle, Object.values(allArticles)).filter((m) => m.words >= 9),
+    [debArticle, allArticles],
   )
   const echoes = useMemo(
-    () => nearDuplicates(article, Object.values(allArticles)).filter((e) => e.similarity >= 12),
-    [article, allArticles],
+    () => nearDuplicates(debArticle, Object.values(allArticles)).filter((e) => e.similarity >= 12),
+    [debArticle, allArticles],
   )
 
   async function checkWeb() {
@@ -670,6 +675,15 @@ function ChecksTab({ article }: { article: Article }) {
       {error && <div className="ai-error">{error}</div>}
     </div>
   )
+}
+
+function useDebounced<T>(value: T, ms: number): T {
+  const [v, setV] = useState(value)
+  useEffect(() => {
+    const t = setTimeout(() => setV(value), ms)
+    return () => clearTimeout(t)
+  }, [value, ms])
+  return v
 }
 
 function errMsg(e: unknown): string {
