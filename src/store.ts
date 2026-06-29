@@ -326,6 +326,7 @@ export const useStore = create<InkState>((set, get) => {
       }
       await db.deleteArticle(id)
       void db.deleteVersionsFor(id)
+      void db.deleteEmbedding(id) // drop its cached semantic vector too
     },
 
     addImage(img) {

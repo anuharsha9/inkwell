@@ -37,6 +37,7 @@ export const DEFAULT_SETTINGS: Settings = {
   aiModel: 'claude-opus-4-8',
   aiEnabled: true,
   allowWebSearch: true,
+  semanticEnabled: false, // opt-in only — never auto-download the model
   voiceProfile: '',
   voiceProfileUpdatedAt: '',
   craftInsight: '',
@@ -210,6 +211,11 @@ export async function loadEmbedding(id: string): Promise<StoredEmbedding | undef
 export async function saveEmbedding(e: StoredEmbedding): Promise<void> {
   const db = await getDB()
   await db.put('embeddings', e)
+}
+
+export async function deleteEmbedding(id: string): Promise<void> {
+  const db = await getDB()
+  await db.delete('embeddings', id)
 }
 
 // ── First-run seed (PRD §8) ──────────────────────────────────────────────

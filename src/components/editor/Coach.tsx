@@ -8,6 +8,13 @@ import { copyText } from '@/lib/clipboard'
 import { lookupWord, type WordEntry } from '@/lib/dictionary'
 import { CATEGORY_LABEL, localPrivacyScan, type PrivacyFinding } from '@/lib/privacy'
 import { nearDuplicates, selfOverlap } from '@/lib/plagiarism'
+import {
+  isSemanticEnabled,
+  onModelProgress,
+  semanticNeighbors,
+  type ModelProgress,
+  type Neighbor,
+} from '@/lib/embeddings'
 import { dueWords, type Grade } from '@/lib/srs'
 import { MetricsPanel } from '@/components/MetricsPanel'
 import {
@@ -548,6 +555,12 @@ function ChecksTab({ article }: { article: Article }) {
   const [didDeep, setDidDeep] = useState(false)
   const [orig, setOrig] = useState('')
   const [origBusy, setOrigBusy] = useState(false)
+  // Semantic "closest in meaning" (on-device, opt-in)
+  const semanticOn = isSemanticEnabled(settings)
+  const [neighbors, setNeighbors] = useState<Neighbor[] | null>(null)
+  const [semBusy, setSemBusy] = useState(false)
+  const [semError, setSemError] = useState('')
+  const [modelStatus, setModelStatus] = useState('')
 
   // Debounce the body so the heavier passes don't recompute on every keystroke
   // (matters once the archive is large).
@@ -578,6 +591,31 @@ function ChecksTab({ article }: { article: Article }) {
       setOrigBusy(false)
     }
   }
+  async function runSemantic() {
+    setSemBusy(true)
+    setSemError('')
+    setNeighbors(null)
+    setModelStatus('')
+    // Show download/load progress while the model boots on first use.
+    const off = onModelProgress((p: ModelProgress) => {
+      if (p.status === 'progress' && typeof p.progress === 'number') {
+        setModelStatus(`Downloading model… ${Math.round(p.progress)}%`)
+      } else if (p.status === 'ready' || p.status === 'done') {
+        setModelStatus('')
+      }
+    })
+    try {
+      const others = Object.values(allArticles).map((a) => ({ id: a.id, title: a.title, body: a.body }))
+      setNeighbors(await semanticNeighbors({ id: article.id, body: article.body }, others))
+    } catch (e) {
+      setSemError(errMsg(e))
+    } finally {
+      off()
+      setModelStatus('')
+      setSemBusy(false)
+    }
+  }
+
   const fkey = (f: PrivacyFinding) => `${f.category}:${f.text}`
   const all = [...localFindings, ...aiFindings].filter((f, i, arr) => {
     if (dismissed.has(fkey(f))) return false
@@ -740,6 +778,55 @@ function ChecksTab({ article }: { article: Article }) {
         <div className="coach-teach-card">
           <Markdown body={orig} />
         </div>
+      )}
+
+      {/* ── Closest in meaning (on-device semantic similarity) ── */}
+      {semanticOn && (
+        <>
+          <div className="coach-section-label" style={{ marginTop: 24 }}>
+            Closest in meaning
+          </div>
+          <p className="coach-hint" style={{ marginTop: 0, marginBottom: 10 }}>
+            Finds past pieces that echo this draft's <em>ideas</em>, not just its wording — runs a small AI model on this
+            device, nothing leaves your browser.
+          </p>
+
+          {neighbors && neighbors.length > 0 && (
+            <>
+              {neighbors.slice(0, 3).map((n) => (
+                <div className="coach-sugg" key={n.id}>
+                  <span className="sugg-cat" style={{ ['--c' as string]: 'var(--accent)' }}>
+                    {n.similarity}% alike
+                  </span>
+                  <h4 className="sugg-title">{n.title}</h4>
+                </div>
+              ))}
+              <p className="coach-hint" style={{ marginTop: 8 }}>
+                A high score means you've covered close ground before — worth a distinct angle so each piece earns its
+                place.
+              </p>
+            </>
+          )}
+          {neighbors && neighbors.length === 0 && !semBusy && (
+            <div className="privacy-clean">
+              <Icon name="check" size={16} strokeWidth={2.2} /> Nothing semantically close — this piece stakes out its
+              own ground.
+            </div>
+          )}
+
+          <button className="btn btn-soft btn-block" style={{ marginTop: 12 }} disabled={semBusy || empty} onClick={runSemantic}>
+            {semBusy ? (
+              <>
+                <span className="spin" /> {modelStatus || 'Comparing meaning…'}
+              </>
+            ) : (
+              <>
+                <Icon name="spark" size={15} /> {neighbors ? 'Re-check closest in meaning' : 'Find closest in meaning'}
+              </>
+            )}
+          </button>
+          {semError && <div className="ai-error">{semError}</div>}
+        </>
       )}
 
       {error && <div className="ai-error">{error}</div>}

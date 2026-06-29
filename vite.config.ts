@@ -132,7 +132,7 @@ export default defineConfig({
   resolve: {
     alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) },
   },
-  server: { port: 3120 },
+  server: { port: process.env.PORT ? Number(process.env.PORT) : 3120 },
   build: {
     rollupOptions: {
       output: {

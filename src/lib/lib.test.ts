@@ -6,6 +6,7 @@ import { localPrivacyScan } from './privacy'
 import { selfOverlap, nearDuplicates } from './plagiarism'
 import { reviewCard, isDue, type SrsState } from './srs'
 import { analyzePos } from './pos'
+import { cosineSimilarity, contentHash, prepText, shouldReuseCached } from './embeddings-core'
 import type { Article } from '@/types'
 
 function article(over: Partial<Article> = {}): Article {
@@ -239,6 +240,46 @@ describe('POS-backed metrics', () => {
     const p = analyzePos('The implementation of the system was a clear improvement in performance and reliability overall.')
     expect(p!.nominalizationPer100).toBeGreaterThan(0)
     expect(p!.weakVerbPer100).toBeGreaterThan(0)
+  })
+})
+
+describe('semantic embeddings — cosine similarity', () => {
+  it('is 1 for identical vectors and -1 for opposites', () => {
+    expect(cosineSimilarity([1, 2, 3], [1, 2, 3])).toBeCloseTo(1, 6)
+    expect(cosineSimilarity([1, 2, 3], [-1, -2, -3])).toBeCloseTo(-1, 6)
+  })
+  it('is 0 for orthogonal vectors', () => {
+    expect(cosineSimilarity([1, 0], [0, 1])).toBeCloseTo(0, 6)
+  })
+  it('is scale-invariant (direction, not magnitude)', () => {
+    expect(cosineSimilarity([2, 0], [5, 0])).toBeCloseTo(1, 6)
+  })
+  it('returns 0 — never NaN — for zero, empty, or mismatched vectors', () => {
+    expect(cosineSimilarity([0, 0], [1, 1])).toBe(0)
+    expect(cosineSimilarity([], [])).toBe(0)
+    expect(cosineSimilarity([1, 2], [1, 2, 3])).toBe(0)
+  })
+})
+
+describe('semantic embeddings — cache hash logic', () => {
+  it('is deterministic and differs on any content change', () => {
+    const body = 'The work was steady and the lessons came slowly.'
+    expect(contentHash(prepText(body))).toBe(contentHash(prepText(body)))
+    expect(contentHash(prepText(body))).not.toBe(contentHash(prepText(body + ' One more line.')))
+    // Whitespace-only edits collapse in prepText → same vector is reused.
+    expect(contentHash(prepText(body))).toBe(contentHash(prepText(body.replace(/ /g, '  '))))
+  })
+  it('reuses a cached vector only when hash matches and data is present', () => {
+    const text = prepText('A real article body that is long enough to embed.')
+    const hash = contentHash(text)
+    expect(shouldReuseCached({ hash, vector: [0.1, 0.2] }, text)).toBe(true) // hit
+    expect(shouldReuseCached({ hash, vector: [0.1, 0.2] }, text + ' edited')).toBe(false) // body changed
+    expect(shouldReuseCached({ hash, vector: [] }, text)).toBe(false) // empty payload
+    expect(shouldReuseCached(undefined, text)).toBe(false) // nothing cached
+  })
+  it('strips markdown so formatting-only edits do not bust the cache', () => {
+    expect(prepText('# Title\n\n**bold** words here.')).toBe('Title bold words here.')
+    expect(contentHash(prepText('plain text here'))).toBe(contentHash(prepText('**plain** _text_ here')))
   })
 })
 

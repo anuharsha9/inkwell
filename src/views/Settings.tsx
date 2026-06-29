@@ -282,6 +282,34 @@ export function Settings() {
           </div>
         </section>
 
+        {/* ── Semantic search (on-device) ─────────────────────────── */}
+        {!DEMO_MODE && (
+          <section className="set-card">
+            <h2 className="set-title">Semantic search (on-device)</h2>
+            <p className="set-hint">
+              Turns on “Closest in meaning” in the Writing Coach — it finds past pieces that echo a draft's{' '}
+              <em>ideas</em>, not just its wording, so you catch yourself re-treading themes. Runs a small AI model
+              entirely in your browser: no key, no API, nothing sent anywhere. The first time you use it, it downloads a
+              one-time ~23&nbsp;MB model and caches it for offline use after that.
+            </p>
+            <button
+              className={`toggle-row ${settings.semanticEnabled ? 'on' : ''}`}
+              style={{ marginTop: 8 }}
+              onClick={() => updateSettings({ semanticEnabled: !settings.semanticEnabled })}
+            >
+              <Icon name="spark" size={16} />
+              <span>On-device semantic similarity</span>
+              <span className="switch" />
+            </button>
+            {settings.semanticEnabled && (
+              <p className="set-hint" style={{ marginTop: 10 }}>
+                Enabled. Open any article's Writing Coach → Checks to find its closest matches. The model downloads on
+                first use.
+              </p>
+            )}
+          </section>
+        )}
+
         {/* ── Source material ─────────────────────────────────────── */}
         <section className="set-card">
           <h2 className="set-title">Source material</h2>

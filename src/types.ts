@@ -77,6 +77,9 @@ export interface Settings {
   // Governance toggles — she controls what the AI is allowed to do.
   aiEnabled: boolean // master switch for all AI writing features
   allowWebSearch: boolean // permit web search for grounded insights / originality
+  // On-device semantic embeddings (Phase 6). Opt-in: first use downloads a
+  // ~23MB model (then fully local). Always forced off in the public demo.
+  semanticEnabled: boolean
   // Learned voice profile — derived from her own writing, injected into every AI call.
   voiceProfile: string
   voiceProfileUpdatedAt: string // ISO; empty until first learned
