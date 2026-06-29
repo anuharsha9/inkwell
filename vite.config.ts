@@ -80,6 +80,47 @@ function localArchive(): PluginOption {
           }
         }),
       )
+
+      // ── Read side (two-way sync) ── list the .md files, and read one back, so
+      // edits made in any external editor can flow back into the app.
+      server.middlewares.use('/__inkwell/list', (req: IncomingMessage, res: ServerResponse) => {
+        if (req.method !== 'GET') {
+          res.statusCode = 405
+          return res.end()
+        }
+        let files: { filename: string; mtime: number }[] = []
+        try {
+          files = fs
+            .readdirSync(dir)
+            .filter((f) => safe(f))
+            .map((f) => ({ filename: f, mtime: fs.statSync(path.join(dir, f)).mtimeMs }))
+        } catch {
+          /* no articles dir yet */
+        }
+        res.setHeader('Content-Type', 'application/json')
+        res.end(JSON.stringify({ files }))
+      })
+
+      server.middlewares.use('/__inkwell/read', (req: IncomingMessage, res: ServerResponse) => {
+        if (req.method !== 'GET') {
+          res.statusCode = 405
+          return res.end()
+        }
+        const url = new URL(req.url ?? '', 'http://localhost')
+        const filename = url.searchParams.get('file')
+        if (!safe(filename)) {
+          res.statusCode = 400
+          return res.end('bad request')
+        }
+        try {
+          const content = fs.readFileSync(path.join(dir, filename), 'utf8')
+          res.setHeader('Content-Type', 'application/json')
+          res.end(JSON.stringify({ filename, content }))
+        } catch {
+          res.statusCode = 404
+          res.end('not found')
+        }
+      })
     },
   }
 }

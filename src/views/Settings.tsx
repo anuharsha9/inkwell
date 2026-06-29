@@ -5,6 +5,8 @@ import { useToast } from '@/components/ui'
 import { ACCENT_SWATCHES } from '@/lib/accent'
 import { exportJSON, exportMarkdownZip, parseBackup } from '@/lib/backup'
 import { isAIConfigured, learnVoice } from '@/lib/ai'
+import { scanDiskChanges, type DiskChange } from '@/lib/disksync'
+import { DEMO_MODE } from '@/lib/env'
 
 export function Settings() {
   const settings = useStore((s) => s.settings)
@@ -17,10 +19,29 @@ export function Settings() {
   const push = useToast((s) => s.push)
 
   const setView = useStore((s) => s.setView)
+  const snapshotVersion = useStore((s) => s.snapshotVersion)
+  const updateArticle = useStore((s) => s.updateArticle)
   const fileRef = useRef<HTMLInputElement>(null)
   const [pendingImport, setPendingImport] = useState<{ text: string; count: number } | null>(null)
   const [voiceBusy, setVoiceBusy] = useState(false)
   const [voiceError, setVoiceError] = useState('')
+  const [diskChanges, setDiskChanges] = useState<DiskChange[] | null>(null)
+  const [scanning, setScanning] = useState(false)
+
+  async function scanDisk() {
+    setScanning(true)
+    try {
+      setDiskChanges(await scanDiskChanges(articles))
+    } finally {
+      setScanning(false)
+    }
+  }
+  function pullChange(c: DiskChange) {
+    snapshotVersion(c.articleId, 'before disk sync')
+    updateArticle(c.articleId, { body: c.diskBody }, { immediate: true })
+    setDiskChanges((prev) => (prev ? prev.filter((x) => x.articleId !== c.articleId) : prev))
+    push(`Pulled “${c.title}” from disk`)
+  }
 
   async function learnMyVoice() {
     setVoiceBusy(true)
@@ -272,6 +293,48 @@ export function Settings() {
             <Icon name="sources" size={16} /> Browse source material
           </button>
         </section>
+
+        {/* ── Local files (two-way sync) ──────────────────────────── */}
+        {!DEMO_MODE && (
+          <section className="set-card">
+            <h2 className="set-title">Local files</h2>
+            <p className="set-hint">
+              Inkwell mirrors every article to <code>articles/*.md</code> in this project. Edited one in another editor?
+              Pull the change back in — your current text is snapshotted first, so nothing is lost.
+            </p>
+            <button className="btn btn-soft" disabled={scanning} onClick={scanDisk}>
+              {scanning ? (
+                <>
+                  <span className="spin" /> Scanning…
+                </>
+              ) : (
+                <>
+                  <Icon name="reroll" size={16} /> Scan disk for changes
+                </>
+              )}
+            </button>
+            {diskChanges !== null && diskChanges.length === 0 && (
+              <p className="set-hint" style={{ marginTop: 10 }}>
+                Everything's in sync — no external edits found.
+              </p>
+            )}
+            {diskChanges && diskChanges.length > 0 && (
+              <div className="disk-changes">
+                {diskChanges.map((c) => (
+                  <div className="disk-change" key={c.articleId}>
+                    <div className="disk-change-info">
+                      <strong>{c.title}</strong>
+                      <span className="disk-file">{c.filename}</span>
+                    </div>
+                    <button className="mini-btn add" onClick={() => pullChange(c)}>
+                      <Icon name="download" size={12} /> Pull into app
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </section>
+        )}
 
         {/* ── Publishing ──────────────────────────────────────────── */}
         <section className="set-card">

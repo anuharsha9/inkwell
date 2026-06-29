@@ -75,6 +75,40 @@ export async function syncArticleFile(article: Article): Promise<void> {
   }
 }
 
+// ── Read side (two-way sync) ───────────────────────────────────────────────
+// Best-effort: returns empty/null when the dev endpoints aren't there (demo).
+export function articleFilenameMap(): Record<string, string> {
+  return loadMap() // articleId → filename
+}
+
+export async function listDiskFiles(): Promise<{ filename: string; mtime: number }[]> {
+  if (disabled) return []
+  try {
+    const res = await fetch('/__inkwell/list')
+    if (!res.ok) {
+      if (res.status === 404 || res.status === 405) disabled = true
+      return []
+    }
+    const data = (await res.json()) as { files: { filename: string; mtime: number }[] }
+    return data.files ?? []
+  } catch {
+    disabled = true
+    return []
+  }
+}
+
+export async function readDiskFile(filename: string): Promise<string | null> {
+  if (disabled) return null
+  try {
+    const res = await fetch(`/__inkwell/read?file=${encodeURIComponent(filename)}`)
+    if (!res.ok) return null
+    const data = (await res.json()) as { content: string }
+    return data.content
+  } catch {
+    return null
+  }
+}
+
 export async function removeArticleFile(article: Article): Promise<void> {
   if (disabled) return
   const map = loadMap()
