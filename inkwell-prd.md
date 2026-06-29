@@ -95,7 +95,8 @@ Settings {
   aiEnabled, allowWebSearch,    // governance toggles (master switch; web-search permission)
   voiceProfile, voiceProfileUpdatedAt,
   craftInsight, craftInsightAt, // persisted narrative "read" shown on Writing Craft (§11)
-  privacyTerms[]                // her own sensitive strings (employers/products/people) flagged locally (§5.11)
+  privacyTerms[],               // her own sensitive strings (employers/products/people) flagged locally (§5.11)
+  semanticEnabled               // opt-in on-device embeddings (§5.16); default false, demo-disabled
 }
 ```
 
@@ -176,6 +177,9 @@ Real client-side analysis that runs with **no API calls**, hardened to genuine a
 
 This is the **default** insight surface (the Coach's Teach tab leads with it; Home and Writing Craft show live corpus stats), so the everyday work is free, instant, private, and offline. The live AI (Claude) is reserved for genuinely generative tasks. This also makes the public demo interactive without a key.
 
+### 5.16 Semantic similarity (on-device embeddings) **[BUILT]**
+The deepest originality layer — catches reworded *ideas*, not just shared phrasing. **Opt-in** (Settings → off by default; force-disabled in the demo): when enabled, a small quantized model (`all-MiniLM-L6-v2` via `@xenova/transformers`) runs **in a web worker on her device** to embed each article; vectors are cached in the `embeddings` store by content hash (recomputed only when the body changes). The Coach's **Checks → "Closest in meaning"** surfaces the most semantically-similar other pieces (cosine similarity), so she can see when she's circling the same idea. Pure math (cosine/hash/prep) lives in `embeddings-core.ts` (unit-tested); the model download (~23MB, one-time, cached by the browser) only happens after she turns it on. Fully local — no API, nothing leaves the device.
+
 ### 5.15 Version history & undo **[BUILT]**
 No edit is ever final. Every Coach action that changes the draft, plus a throttled autosave during editing, writes a **`Version`** snapshot (§4). The editor's **History** panel (clock/restore icon in the top bar) lists snapshots — reason + relative time + preview + word count — and **Restore** brings one back (saving the current text first, so restoring is itself undoable). Destructive applies also surface a one-click **Undo** toast. Snapshots live in their own IndexedDB store, capped at ~25 per article, and are deleted with the article. (§6)
 
@@ -186,7 +190,7 @@ A build-time flag (`VITE_DEMO_MODE`) seeds a **fictional sample dataset** ("Maya
 
 ## 6. Persistence
 
-- IndexedDB, database `inkwell` (**v2**), object stores: **`articles`** (light records, keyed by id) · **`images`** (one entry per image, so heavy base64 never bloats list load) · **`meta`** (settings, vocabulary, the `seeded` flag) · **`versions`** (per-article history, indexed by articleId; §5.15) · **`embeddings`** (cached semantic vectors, reserved for §12).
+- IndexedDB, database `inkwell` (**v2**), object stores: **`articles`** (light records, keyed by id) · **`images`** (one entry per image, so heavy base64 never bloats list load) · **`meta`** (settings, vocabulary, the `seeded` flag) · **`versions`** (per-article history, indexed by articleId; §5.15) · **`embeddings`** (cached semantic vectors, keyed by article id + content hash; §5.16).
 - **All written work persists across sessions and refreshes. There is no lose-your-work path.** Autosave everywhere; structural ops write immediately.
 - Local-only credentials: the Anthropic key, image-AI key, and all settings live in `meta` on her device and are **never** transmitted anywhere except, at her request, directly to the provider's API.
 - **Export**: JSON backup (images embedded) + a zip of per-article `.md` files with their images (referenced by relative path). **Import**: from JSON, with an overwrite warning.
@@ -217,7 +221,7 @@ Inkwell is local-first and honest about what the AI does; she controls all of it
 15: Move Source Material into Settings. **[BUILT]**
 16: Privacy / fact-check guard + editor shield. **[BUILT]**
 17–23 (v3): Writing Craft · Momentum · Book mode · real-corpus import + persisted craft read · **A-grade intelligence layer** (POS, MATTR, personalized readiness, local company-privacy, echoes) · **version history + undo** · **spaced-repetition vocab** · **two-way `.md` sync**. **[BUILT]** — see §5.13, §5.15, §11.
-24 (v4): on-device semantic embeddings. **[FUTURE]** — see §12.
+24 (v4): on-device semantic embeddings. **[BUILT]** — see §5.16, §11.
 
 ## 10. Acceptance criteria (current scope is "done" when…)
 
@@ -251,6 +255,7 @@ Inkwell is local-first and honest about what the AI does; she controls all of it
 - **Version history & undo [BUILT].** §5.15.
 - **Spaced-repetition vocabulary [BUILT].** §5.9 Vocabulary.
 - **Two-way `.md` sync [BUILT].** §6.
+- **On-device semantic embeddings [BUILT].** §5.16 — the A+ originality frontier, opt-in and local.
 
 ### Still open **[NEXT]**
 - Craft/Book aren't on the mobile tab bar yet (desktop rail only); reachable on mobile via the momentum link / deep links.
@@ -259,9 +264,7 @@ Inkwell is local-first and honest about what the AI does; she controls all of it
 
 ## 12. Future (DO NOT BUILD YET — architect to allow) **[FUTURE]**
 
-**On-device semantic embeddings** (the deferred A+ frontier; `embeddings` store already in place) — a small quantized model (e.g. `all-MiniLM-L6-v2`) run locally in a web worker for **semantic** originality (reworded *ideas*, not just shared phrasing) and "closest in meaning" across her archive. Strictly opt-in (a ~23MB model download), demo-disabled. *(Task chip filed.)*
-
-Other future ideas: cloud sync across devices · direct API publishing/scheduling · series & threads (mini-arcs beyond phases) · editorial calendar (drag ready pieces onto dates) · idea inbox (lightweight capture that graduates into shells) · stock-image search (Unsplash/Pexels with auto-attribution) · per-platform image presets + a lockable brand kit · multiple talk tracks (generalize the Config Track) · reading-time + SEO metadata per platform.
+Cloud sync across devices · direct API publishing/scheduling · series & threads (mini-arcs beyond phases) · editorial calendar (drag ready pieces onto dates) · idea inbox (lightweight capture that graduates into shells) · stock-image search (Unsplash/Pexels with auto-attribution) · per-platform image presets + a lockable brand kit · multiple talk tracks (generalize the Config Track) · reading-time + SEO metadata per platform.
 
 ---
 
