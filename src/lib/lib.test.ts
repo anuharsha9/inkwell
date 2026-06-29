@@ -5,6 +5,7 @@ import { publishedBaseline } from './craft'
 import { localPrivacyScan } from './privacy'
 import { selfOverlap, nearDuplicates } from './plagiarism'
 import { reviewCard, isDue, type SrsState } from './srs'
+import { analyzePos } from './pos'
 import type { Article } from '@/types'
 
 function article(over: Partial<Article> = {}): Article {
@@ -220,6 +221,24 @@ describe('spaced repetition', () => {
   it('marks a future-due card as not due', () => {
     const r = reviewCard(fresh, 'easy', now)
     expect(isDue({ due: r.due }, now)).toBe(false)
+  })
+})
+
+describe('POS-backed metrics', () => {
+  it('detects passive and real adverbs, ignoring -ly nouns', () => {
+    const p = analyzePos('The house was built by hand. She quickly and carefully revised the whole long draft today.')
+    expect(p).not.toBeNull()
+    expect(p!.passivePer100).toBeGreaterThan(0)
+    expect(p!.adverbPer100).toBeGreaterThan(0)
+  })
+  it('does not count predicate adjectives as passive', () => {
+    const p = analyzePos('I was excited about the project. She was interested in the whole idea from the start.')
+    expect(p!.passivePer100).toBe(0)
+  })
+  it('flags weak verbs and nominalizations', () => {
+    const p = analyzePos('The implementation of the system was a clear improvement in performance and reliability overall.')
+    expect(p!.nominalizationPer100).toBeGreaterThan(0)
+    expect(p!.weakVerbPer100).toBeGreaterThan(0)
   })
 })
 

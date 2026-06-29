@@ -142,6 +142,7 @@ export default defineConfig({
           react: ['react', 'react-dom'],
           markdown: ['react-markdown', 'remark-gfm'],
           jszip: ['jszip'],
+          nlp: ['compromise'],
         },
       },
     },
