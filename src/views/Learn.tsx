@@ -28,22 +28,27 @@ const FEATURES: Feature[] = [
   {
     icon: 'dots',
     title: 'Local intelligence — no API needed',
-    body: 'Readability, sentence rhythm, lexical diversity, filler and passive detection, and a publish-readiness score — all computed on your device, instantly, offline. The everyday work needs no AI at all.',
+    body: 'Readability on real syllable rules, length-robust vocabulary range (MATTR), sentence rhythm, and part-of-speech analysis — real passive voice, weak verbs, nominalizations — all on your device, instantly, offline. Publish-readiness is even scored against your own published work.',
   },
   {
     icon: 'search',
     title: 'Vocabulary that grows with you',
-    body: 'Real dictionary lookups (definitions, synonyms, examples) and a personal word bank you build over time — plus an AI pass that lifts weak diction in your drafts.',
+    body: 'Real dictionary lookups build a personal word bank — then spaced-repetition review turns it into practice: recall, grade, and the words you struggle with come back sooner. Plus an AI pass that lifts weak diction in drafts.',
+  },
+  {
+    icon: 'reroll',
+    title: 'Never lose a word',
+    body: 'Every edit and AI rewrite is snapshotted. Undo any change in one click, or restore an earlier version from the history panel — so the blank page is always safe to experiment on.',
   },
   {
     icon: 'shield',
     title: 'Privacy & fact-check guard',
-    body: 'Before you publish, it flags anything confidential — salary, address, birthdate, exact employers — and suggests generic replacements. Nothing personal slips out by accident.',
+    body: 'Before you publish, it flags anything confidential — salary, address, birthdate, named employers — and suggests generic replacements. Nothing personal slips out by accident.',
   },
   {
     icon: 'check',
     title: 'Originality check',
-    body: 'Catches passages you’ve reused across your own pieces (locally, instantly) and, with web search, flags lines that match published material — so your work stays yours.',
+    body: 'Catches passages you’ve reused across your own pieces — verbatim and lightly reworded (echoes) — locally and instantly, and with web search flags lines that match published material. Your work stays yours.',
   },
   {
     icon: 'chart',

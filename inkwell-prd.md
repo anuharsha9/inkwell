@@ -74,7 +74,10 @@ Enums: `Phase` (phase-1…5, unfiled) · `Status` (idea, drafting, ready, publis
 `{ id, src (data URL or remote), source (upload|url|ai|stock), alt, attribution, prompt|null, createdAt }` — stored under its own key, referenced by id (see §6).
 
 ### Entity: `SavedWord` (vocabulary) **[BUILT]**
-`{ word, definition, partOfSpeech, savedAt }` — her personal word bank, persisted.
+`{ word, definition, partOfSpeech, savedAt, due, interval, ease, reps, lapses }` — her personal word bank with **spaced-repetition** state (SM-2-lite; see §5.9 Vocabulary). Persisted; older words are migrated with safe defaults.
+
+### Entity: `Version` (per-article history) **[BUILT]**
+`{ id (`articleId:ts`), articleId, ts, body, reason }` — a restorable snapshot of an article body. Written before every Coach apply and on a throttled autosave; the last ~25 per article are kept (see §5.15).
 
 ### Entity: `Settings` (single record)
 ```
@@ -90,7 +93,9 @@ Settings {
   // AI writing partner (Claude) — key stored locally, never shipped
   aiApiKey, aiModel,            // default model: claude-opus-4-8
   aiEnabled, allowWebSearch,    // governance toggles (master switch; web-search permission)
-  voiceProfile, voiceProfileUpdatedAt
+  voiceProfile, voiceProfileUpdatedAt,
+  craftInsight, craftInsightAt, // persisted narrative "read" shown on Writing Craft (§11)
+  privacyTerms[]                // her own sensitive strings (employers/products/people) flagged locally (§5.11)
 }
 ```
 
@@ -139,9 +144,11 @@ A drawer in the editor (opened from the **Coach** button), with four tabs. Every
 - **Give me a lesson** — reads *this* draft and returns *what's working · one habit to work on (e.g. "you explain too much," "your framing is buried," "vary your sentence length") · a micro-exercise for next time.*
 - **Insights from the web** — uses Claude's **web-search** tool to pull *real, cited* writing-craft guidance and apply it to her actual text. Grounded, never invented (honors §10 real-data rule).
 
-**Vocabulary** — real growth. Wired to the free **Dictionary API** (dictionaryapi.dev — no key): look up any word (phonetics, definitions, examples, clickable synonyms), **save to a personal word bank** (persisted), and browse it. The Improve tab's "Lift diction" upgrades weak/overused words in drafts. Goal: grow her range through use.
+**Vocabulary** — real growth, with practice. Wired to the free **Dictionary API** (dictionaryapi.dev — no key): look up any word (phonetics, definitions, examples, clickable synonyms), **save to a personal word bank** (persisted), and browse it. **Spaced-repetition review [BUILT]:** saved words become flashcards — a "N words due" prompt starts a session (recall → reveal → grade *Again / Good / Easy*), and an SM-2-lite scheduler (`lib/srs.ts`) sets the next due date so words you struggle with come back sooner and ones that stick space out. The Improve tab's "Lift diction" upgrades weak/overused words in drafts. Goal: grow her range through use *and* deliberate recall.
 
 **Checks** — pre-publish guard (§5.11): privacy/fact-check + originality.
+
+**Safety:** every Coach action that rewrites the draft (Improve apply, Review suggestion, privacy fix) first writes a **version snapshot** and shows a one-click **Undo** toast (see §5.15).
 
 All AI features are gated by governance toggles (§5.11/§8): a master AI switch and an allow-web-search switch.
 
@@ -151,17 +158,26 @@ A **Learn my voice** pass (Settings) analyzes her own article bodies into a conc
 ### 5.11 Privacy / fact-check guard **[BUILT]**
 Because she publishes in public, Inkwell scans drafts for confidential or identifying details before they ship. Her rule: **keep numbers generic and companies generic; never expose birthdate, home address, exact salary/finances, or contact details.**
 - A **shield indicator** in the editor top bar runs a local scan continuously: green "Private-safe" when clean, amber with a count when it finds something; click to open the Privacy tab.
-- **Local scan** (regex, always on, no key): money/salary figures, birthdates and day-level dates, street addresses, emails, phone numbers — each with a generic suggested replacement (`$138K → [a generic figure]`, `4400 … Road → [my city]`, email/phone → `[redacted]`).
-- **Deep scan with AI** (when configured): catches what regex can't — exact employer/client names (→ "a large enterprise software company"), figures written in words, doxxable specifics.
+- **Local scan** (regex + her own term list, always on, no key): money/salary figures (currency symbols, Indian lakh/crore, and **money written in words** like "six figures") — but *not* bare counts like "20 million weekly jobs"; birthdates and day-level dates; street addresses; emails; phone numbers; and **named companies** — both via a **corporate-suffix heuristic** ("Acme Technologies/Inc/LLC") and her own **private-terms list** (`settings.privacyTerms` — real employers/products/people she names in Settings; e.g. TIBCO, WebFOCUS, ReportCaster). Each gets a generic suggested replacement (`$138K → [a generic figure]`, `4400 … Road → [my city]`, employer → `[a company]`, email/phone → `[redacted]`).
+- **Deep scan with AI** (when configured): catches what regex can't — figures written obliquely, doxxable specifics, employer names not on her list.
 - Each finding shows category, the exact flagged text, a plain reason, and **Apply → replacement** / **Keep it**. Nothing is changed without her click; she always decides.
 
-**Originality / plagiarism** (same "Checks" surface): a **local self-overlap** check (no key) flags passages she's reused near-verbatim across her *other* articles, so she doesn't recycle the same lines — each match shows the passage and which piece it's also in. A **Check the web** pass (Claude + web search, when allowed) flags distinctive sentences or claims that closely match existing published material and unverifiable facts, with citations — honest, never fabricated.
+**Originality / plagiarism** (same "Checks" surface): a **local self-overlap** check (no key) flags passages she's reused near-verbatim across her *other* articles — each match shows the passage and which piece it's also in — plus **paraphrase-tolerant echoes** (4-word-shingle containment) that surface lightly-reworded repetition the verbatim pass misses, with a similarity %. A **Check the web** pass (Claude + web search, when allowed) flags distinctive sentences or claims that closely match existing published material and unverifiable facts, with citations — honest, never fabricated. *(Deep semantic paraphrase — reworded ideas, not shared phrasing — needs on-device embeddings; see §12.)*
 
 ### 5.12 Settings **[BUILT]**
 One page: **Appearance** (signature accent picker — a Moleskine-app signature — + day/night theme), **AI writing partner** (Anthropic key + model + Learn-my-voice + editable voice profile), **Source material** (link to §5.8), **Publishing destinations** (Substack/LinkedIn/Medium URLs), **Image generation** (image-AI provider config), **Backup & portability** (export/import). Every credential is local-only and never shipped.
 
 ### 5.13 Local intelligence layer **[BUILT]**
-Real client-side analysis that runs with **no API calls** — readability (Flesch ease + grade), sentence-rhythm (length variance), lexical diversity, filler/passive/adverb density, and a feature-based **publish-readiness score** with a factor checklist. This is the **default** insight surface (the Coach's Teach tab leads with it; Home shows live corpus stats), so the everyday work is free, instant, private, and offline. The live AI (Claude) is reserved for genuinely generative tasks. This also makes the public demo interactive without a key.
+Real client-side analysis that runs with **no API calls**, hardened to genuine accuracy:
+- **Readability** (Flesch ease + grade) on a real English **syllable counter** (silent-e, consonant+le, silent -ed/-es + exceptions) and a **proper sentence segmenter** that respects abbreviations ("Mr.", "U.S."), decimals ("9.3"), and markdown lists (so bullet lines don't fuse into one run-on).
+- **Lexical diversity** via **MATTR** (moving-average type-token ratio) — length-robust, unlike raw unique/total.
+- **Sentence rhythm** (length variance), **filler** density, and — for the **active draft** — **POS-backed** style metrics via `compromise` (`lib/pos.ts`): real adverbs (not every -ly word), real **passive voice** (POS + a predicate-adjective stoplist, so "was excited" isn't flagged), plus **weak verbs** and **nominalizations**. Whole-corpus aggregates keep the fast heuristics for speed; the per-draft panel uses POS. Degrades to heuristics if the POS pass fails.
+- **Publish-readiness score** — scored against her **own published baseline** (percentiles of her published pieces: "readable for you", "rhythm in your range", "typical length for you") once she has ≥3 published, with the hard gates (title/hook/substance/cover-alt) always on; falls back to fixed thresholds before then.
+
+This is the **default** insight surface (the Coach's Teach tab leads with it; Home and Writing Craft show live corpus stats), so the everyday work is free, instant, private, and offline. The live AI (Claude) is reserved for genuinely generative tasks. This also makes the public demo interactive without a key.
+
+### 5.15 Version history & undo **[BUILT]**
+No edit is ever final. Every Coach action that changes the draft, plus a throttled autosave during editing, writes a **`Version`** snapshot (§4). The editor's **History** panel (clock/restore icon in the top bar) lists snapshots — reason + relative time + preview + word count — and **Restore** brings one back (saving the current text first, so restoring is itself undoable). Destructive applies also surface a one-click **Undo** toast. Snapshots live in their own IndexedDB store, capped at ~25 per article, and are deleted with the article. (§6)
 
 ### 5.14 Demo mode **[BUILT]**
 A build-time flag (`VITE_DEMO_MODE`) seeds a **fictional sample dataset** ("Maya Rivera", eight invented articles with real bodies) and fictional source suggestions into a **separate IndexedDB** (`inkwell-demo`) — her real 50-article plan and writing **never** ship to the public demo. A "Demo" badge marks the build. The no-key features (local intelligence, vocabulary, privacy, originality) work live, so an audience can explore the app and build a case study from it. The Vercel deploy uses `npm run build:demo`; her personal local app uses the real seed. Repo: `github.com/anuharsha9/inkwell` (private).
@@ -170,11 +186,12 @@ A build-time flag (`VITE_DEMO_MODE`) seeds a **fictional sample dataset** ("Maya
 
 ## 6. Persistence
 
-- IndexedDB, database `inkwell`, object stores: **`articles`** (light records, keyed by id) · **`images`** (one entry per image, so heavy base64 never bloats list load) · **`meta`** (settings, vocabulary, the `seeded` flag).
+- IndexedDB, database `inkwell` (**v2**), object stores: **`articles`** (light records, keyed by id) · **`images`** (one entry per image, so heavy base64 never bloats list load) · **`meta`** (settings, vocabulary, the `seeded` flag) · **`versions`** (per-article history, indexed by articleId; §5.15) · **`embeddings`** (cached semantic vectors, reserved for §12).
 - **All written work persists across sessions and refreshes. There is no lose-your-work path.** Autosave everywhere; structural ops write immediately.
 - Local-only credentials: the Anthropic key, image-AI key, and all settings live in `meta` on her device and are **never** transmitted anywhere except, at her request, directly to the provider's API.
 - **Export**: JSON backup (images embedded) + a zip of per-article `.md` files with their images (referenced by relative path). **Import**: from JSON, with an overwrite warning.
-- **Local file mirror [BUILT].** During local dev (her personal use), every article with a body is mirrored automatically to a real markdown file in the project folder (`inkwell/articles/NN-slug.md`, with frontmatter) via a dev-server plugin — created/updated on save, removed when emptied or deleted. Her writing thus lives as permanent local files, never lost. The folder is gitignored (stays on her machine) and the mirror is a no-op in the static/Vercel demo build (no server). She runs the app locally; the demo is only an explorable showcase.
+- **Local file mirror [BUILT].** During local dev (her personal use), every article with a body is mirrored automatically to a real markdown file in the project folder (`inkwell/articles/NN-slug.md`, with frontmatter) via a dev-server plugin — created/updated on save, removed when emptied or deleted. Her writing thus lives as permanent local files, never lost. The folder is gitignored (stays on her machine) and the mirror is a no-op in the static/Vercel demo build (no server).
+- **Two-way sync [BUILT].** The mirror also reads back: the dev plugin exposes `GET /__inkwell/list` + `/read`, and **Settings → Local files → "Scan disk for changes"** compares `articles/*.md` to the in-app articles (matching by the saved filename map, parsing frontmatter via `parseArticleMarkdown`) and lets her **pull** any externally-edited file back in — snapshotting the current body first (§5.15), never a silent overwrite. So she can edit in any editor and the app stays in sync. No-op in the demo (no endpoints).
 
 ## 7. Design direction
 
@@ -199,7 +216,8 @@ Inkwell is local-first and honest about what the AI does; she controls all of it
 14: Voice profile (learn from corpus, inject into prompts). **[BUILT]**
 15: Move Source Material into Settings. **[BUILT]**
 16: Privacy / fact-check guard + editor shield. **[BUILT]**
-17–19: see Roadmap (§11). **[NEXT]**
+17–23 (v3): Writing Craft · Momentum · Book mode · real-corpus import + persisted craft read · **A-grade intelligence layer** (POS, MATTR, personalized readiness, local company-privacy, echoes) · **version history + undo** · **spaced-repetition vocab** · **two-way `.md` sync**. **[BUILT]** — see §5.13, §5.15, §11.
+24 (v4): on-device semantic embeddings. **[FUTURE]** — see §12.
 
 ## 10. Acceptance criteria (current scope is "done" when…)
 
@@ -227,16 +245,23 @@ Inkwell is local-first and honest about what the AI does; she controls all of it
 
 - **Writing Craft — the longitudinal teacher [BUILT].** Reads across her *whole* body of work and tracks growth over time: corpus stats (pieces, words, avg readability, sentence variety), a month-by-month trend chart, rule-based **tendencies** (habits to work on / what's working, derived honestly from the local metrics), a one-line **focus for next pieces**, and an optional AI "read across my writing." All local; "the more I write, the better I get" made visible.
 - **Momentum [BUILT].** A calm Home strip — writing streak, words this week, pieces published — rewarding the practice, never nagging; links into Writing Craft.
-- **Book mode [BUILT].** Compile a book from her articles: pick pieces, order them into chapters (reorder/remove), set a title, preview the full manuscript (title page + contents + chapters), and export a single combined markdown file. Persisted.
+- **Book mode [BUILT].** Compile a book from her articles: pick pieces, order them into chapters (reorder/remove), set a title, preview the full manuscript (title page + contents + chapters), and export a single combined markdown file. Persisted. *(Personal-only — hidden from the public demo.)*
+- **Real corpus imported [BUILT].** Her 10 actually-published pieces (8 Medium + 2 IBI Community) live in the Archive and on disk, so the coach, Craft, and metrics work on her real writing. The **Writing Craft** page also carries a persisted, reader-facing **"Your voice, read closely"** narrative (`settings.craftInsight`) — refreshable with Claude, but populated for free.
+- **Intelligence layer hardened to A-grade [BUILT].** See §5.13 — real syllables/segmentation, MATTR, POS-backed passive/adverb + weak-verbs + nominalizations, personalized readiness, local company-privacy detection, paraphrase-tolerant echoes, and the month-trend fixed to use publish dates. 33 unit tests.
+- **Version history & undo [BUILT].** §5.15.
+- **Spaced-repetition vocabulary [BUILT].** §5.9 Vocabulary.
+- **Two-way `.md` sync [BUILT].** §6.
 
 ### Still open **[NEXT]**
 - Craft/Book aren't on the mobile tab bar yet (desktop rail only); reachable on mobile via the momentum link / deep links.
-- The 3-vs-5 "ready" seed-count discrepancy is still her call (1-click inline flip).
+- The 3-vs-5 "ready" seed-count discrepancy is still her call (1-click inline flip) — largely moot now that the existing-tagged pieces are `published`.
 - Optional: an AI "compile/outline a book from my writing" assist on top of Book mode.
 
 ## 12. Future (DO NOT BUILD YET — architect to allow) **[FUTURE]**
 
-Cloud sync across devices · direct API publishing/scheduling · series & threads (mini-arcs beyond phases) · editorial calendar (drag ready pieces onto dates) · idea inbox (lightweight capture that graduates into shells) · version history per article · stock-image search (Unsplash/Pexels with auto-attribution) · per-platform image presets + a lockable brand kit · multiple talk tracks (generalize the Config Track) · reading-time + SEO metadata per platform.
+**On-device semantic embeddings** (the deferred A+ frontier; `embeddings` store already in place) — a small quantized model (e.g. `all-MiniLM-L6-v2`) run locally in a web worker for **semantic** originality (reworded *ideas*, not just shared phrasing) and "closest in meaning" across her archive. Strictly opt-in (a ~23MB model download), demo-disabled. *(Task chip filed.)*
+
+Other future ideas: cloud sync across devices · direct API publishing/scheduling · series & threads (mini-arcs beyond phases) · editorial calendar (drag ready pieces onto dates) · idea inbox (lightweight capture that graduates into shells) · stock-image search (Unsplash/Pexels with auto-attribution) · per-platform image presets + a lockable brand kit · multiple talk tracks (generalize the Config Track) · reading-time + SEO metadata per platform.
 
 ---
 
