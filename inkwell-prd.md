@@ -2,7 +2,9 @@
 
 **Owner:** Anuja Harsha
 **Version:** 2.0 — full scope
-**Last updated:** June 2026
+**Last updated:** 2026-07-01
+**Live demo:** [inkwell.anujaharsha.com](https://inkwell.anujaharsha.com) (Vercel, `VITE_DEMO_MODE=1`; fictional "Maya Rivera" seed + guided tour)
+**Personal build:** local Vite dev, real 50-article seed + two-way `.md` mirror to `inkwell/articles/` (gitignored)
 **Intended builder:** Claude Code (agentic build)
 **Tagline:** *Archive · Publishing Queue · AI Writing Coach · Craft Teacher*
 
