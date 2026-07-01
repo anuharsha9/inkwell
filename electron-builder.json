@@ -1,0 +1,11 @@
+{
+  "appId": "com.anujaharsha.inkwell",
+  "productName": "Inkwell",
+  "directories": { "output": "release" },
+  "files": ["dist/**/*", "electron/**/*", "package.json"],
+  "mac": {
+    "target": "dir",
+    "category": "public.app-category.productivity",
+    "identity": null
+  }
+}

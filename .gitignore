@@ -5,6 +5,9 @@ node_modules
 dist
 dist-ssr
 
+# desktop app (Electron) packaged output
+release
+
 # vercel
 .vercel
 
