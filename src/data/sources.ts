@@ -118,13 +118,48 @@ export const SOURCES: Source[] = [
 
   // ── Apps ─────────────────────────────────────────────────────────────
   {
+    id: 'portfolio',
+    kind: 'app',
+    name: 'The Portfolio',
+    meta: 'anujaharsha.com · live since 2026-06-28',
+    blurb:
+      'The site is itself the strongest case study: a cinematic Next.js/Three.js experience with a live AI that answers in your voice, a token-driven design system including motion, and a 96-mobile Lighthouse score on a WebGL site.',
+    suggestions: [
+      {
+        title: 'My Portfolio Answers Questions When I\'m Asleep',
+        hook: 'Ask Anu: ~39 hand-curated answers plus live Claude responses in my voice, on a static site — the API key held server-side on a Cloudflare Worker so it can be public without being exploitable.',
+        tags: ['live', 'technical'],
+      },
+      {
+        title: 'Tokenize the Motion, Not Just the Colors',
+        hook: 'Everyone tokenizes color and spacing. The maintainability unlock was tokenizing easing curves and durations too — change one token and the whole site\'s choreography follows, CSS and framer-motion alike.',
+        tags: ['live', 'technical', 'process'],
+      },
+      {
+        title: 'A 96 Lighthouse Score on a WebGL Portfolio',
+        hook: 'Animated portfolios usually score in the 40s–60s. Compositor-only animation, a lazy-loaded brain experience, and a CSS-driven first paint got a cinematic site to 96 mobile with zero layout shift.',
+        tags: ['live', 'technical'],
+      },
+      {
+        title: 'The Medium Is the Résumé',
+        hook: 'The portfolio doesn\'t describe the work — it is the work. If the hiring manager only experienced the site itself, they\'d already have their answer.',
+        tags: ['live', 'process', 'human'],
+      },
+    ],
+  },
+  {
     id: 'wealthengine',
     kind: 'app',
     name: 'WealthEngine',
-    meta: 'finance-app · local-first life-decision engine',
+    meta: 'finance-app · local-first life-decision engine · live demo at wealthengine.anujaharsha.com',
     blurb:
-      'A multi-currency household financial OS built on six years of real transactions. It answers "what do I really spend, what\'s my true net worth in USD and INR, and which life path gets me to ₹70 crore?"',
+      'A multi-currency household financial OS built on six years of real transactions. It answers "what do I really spend, what\'s my true net worth in USD and INR, and which life path gets me to ₹70 crore?" Now public as a fictional-persona demo.',
     suggestions: [
+      {
+        title: 'How to Publish a Finance App Without Publishing Your Finances',
+        hook: 'Two independent safety guarantees: the real data is physically absent from the deploy, and a demo-mode gate serves a fictional family. Either one failing still leaves you safe. Defense in depth for a life\'s worth of numbers.',
+        tags: ['live', 'technical', 'process'],
+      },
       {
         title: 'Median, Not Mean: How One $9K Withdrawal Lied About My Runway',
         hook: 'A single cash withdrawal or car repair distorts every projection if you average it. Why the median is the only honest number in a personal-finance tool.',
@@ -146,10 +181,25 @@ export const SOURCES: Source[] = [
     id: 'sous',
     kind: 'app',
     name: 'Sous',
-    meta: 'cooking-app · voice-first AI cooking companion',
+    meta: 'cooking-app · voice-first AI cooking companion · TestFlight build 4, App Store next',
     blurb:
-      'A hands-free kitchen companion where voice guides you step by step, recipes import from any source, and a state machine — not the LLM — keeps it safe.',
+      'A hands-free kitchen companion where voice guides you step by step, recipes import from any source, and a state machine — not the LLM — keeps it safe. Now on TestFlight with on-device "Hey Sous" wake words; shipping free on the App Store.',
     suggestions: [
+      {
+        title: '"Hey Sous" Without a Server: Wake Words From Apple\'s Own Speech Engine',
+        hook: 'No Porcupine, no cloud, no subscription — a state machine over Apple\'s on-device speech recognizer listens for "Hey Sous" and "Sous pause." The constraint (free, private, offline) produced the better design.',
+        tags: ['live', 'technical'],
+      },
+      {
+        title: 'Answer Most Questions for Free: The Tier-0 Layer',
+        hook: '"How much garlic?" doesn\'t need a language model. On-device code, a USDA nutrition table, and a recommender answer the common tail instantly and free — the LLM is reserved for the questions that earn it.',
+        tags: ['live', 'technical', 'process'],
+      },
+      {
+        title: 'I Retired My Timers and Gave Them to Siri',
+        hook: 'The hardest feature to cut was the one iOS already does better. Knowing what not to build — and handing it to the platform — is a design decision too.',
+        tags: ['live', 'process'],
+      },
       {
         title: 'Constrain the AI Before You Let It Cook',
         hook: 'A hard-coded state machine (idle → importing → ready → cooking → done), not the language model, is what keeps a voice cooking app from hallucinating mid-recipe.',
@@ -171,9 +221,9 @@ export const SOURCES: Source[] = [
     id: 'warden',
     kind: 'app',
     name: 'Warden',
-    meta: 'warden · AI agent access & guardrails console',
+    meta: 'warden · AI agent access & guardrails console · live at warden.anujaharsha.com',
     blurb:
-      'A console for governing autonomous AI agents — scoped, least-privilege, auditable identities running every action through a five-gate decision ladder.',
+      'A console for governing autonomous AI agents — scoped, least-privilege, auditable identities running every action through a five-gate decision ladder. Built for a Datadog Triple-A panel; the agents govern the real WealthEngine app.',
     suggestions: [
       {
         title: 'Triple-A for AI Agents',
@@ -190,15 +240,25 @@ export const SOURCES: Source[] = [
         hook: 'Every agent action carries a one-line authority and an expandable gate-by-gate trace of exactly why it was allowed or refused. Transparency isn\'t a feature here — it\'s the whole point.',
         tags: ['technical'],
       },
+      {
+        title: 'An Agent Is Not Its Deployer',
+        hook: 'The privilege-escalation disaster hiding in every agentic platform: the agent inherits its owner\'s permissions. Warden\'s answer — its own scoped identity, capped at least-privilege, even when the owner is a superadmin.',
+        tags: ['technical', 'live'],
+      },
+      {
+        title: 'What Happens to an AI Agent When Its Owner Leaves the Company?',
+        hook: 'My favorite edge case: offboard the owner, and the agent auto-pauses on its next action. No zombie agents acting on a ghost\'s authority.',
+        tags: ['technical', 'process'],
+      },
     ],
   },
   {
     id: 'college-os',
     kind: 'app',
-    name: 'College OS',
-    meta: 'College OS · application decision engine',
+    name: 'Pathwise',
+    meta: 'College OS folder · education-ROI decision engine · live at pathwise.anujaharsha.com',
     blurb:
-      'A dashboard that turns application chaos into a calibrated decision engine — tracking programs, deadlines, and fit, learning from real outcomes.',
+      'Started as an application tracker; pivoted into an education-ROI and career-projection engine. Takes a real profile — résumé, goals, constraints — and answers which program is worth it, with cited sources and honestly-hedged projections.',
     suggestions: [
       {
         title: 'The Chair Test for a Data-Heavy Dashboard',
@@ -209,6 +269,16 @@ export const SOURCES: Source[] = [
         title: 'Heuristic First, Then Calibrate: Fit Scores You Can Trust',
         hook: 'Telling someone "92% match" is easy; making it honest is hard. How to build a fit signal that earns confidence instead of faking it.',
         tags: ['technical', 'process'],
+      },
+      {
+        title: 'The LLM Proposes, the Code Verifies',
+        hook: 'Every program fact ships with a citation because a deterministic verifier re-fetches the source and confirms the quote is still there before it\'s committed. How to use an LLM for data extraction without inheriting its confidence.',
+        tags: ['live', 'technical'],
+      },
+      {
+        title: 'I Renamed My App When I Understood What It Was',
+        hook: '"College OS" tracked applications. "Pathwise" answers a decision. The rename wasn\'t branding — it was the moment the product\'s real job came into focus.',
+        tags: ['live', 'process'],
       },
     ],
   },
@@ -262,12 +332,37 @@ export const SOURCES: Source[] = [
 
   // ── Existing writing (meta) ──────────────────────────────────────────
   {
+    id: 'copy-and-tone',
+    kind: 'writing',
+    name: 'Copy & tone guide',
+    meta: 'docs/copy-and-tone.md · the voice rules behind anujaharsha.com',
+    blurb:
+      'Your written voice, codified: Apple-minimalist and straightforward. Simple — no fluff. Direct — talk like a person, not a brochure. Confident, not boastful — state facts, not feelings. Kill flowery language and filler adjectives; lead with outcomes and specifics; short sentences, fragments fine; whitespace over word count. The same rules that shaped every headline on the portfolio.',
+    suggestions: [
+      {
+        title: 'Delete the Adjective, Keep the Number',
+        hook: '"Innovative, cutting-edge, world-class" says nothing. "20M jobs a week, 75% fewer clicks" says everything. The edit that transformed my portfolio was subtraction.',
+        tags: ['existing', 'process'],
+      },
+      {
+        title: 'Why My Portfolio Talks Like a Person',
+        hook: 'Every designer\'s site says "crafting digital experiences." Mine says "I make the tool nobody can figure out obvious." Writing your own tone guide is a design exercise — the chair test applied to sentences.',
+        tags: ['existing', 'human', 'process'],
+      },
+      {
+        title: 'Typography Should Breathe: Whitespace Over Word Count',
+        hook: 'The hardest copy rule I follow isn\'t about words — it\'s about the space around them. One idea per line. Fragments are fine. The layout is part of the sentence.',
+        tags: ['existing', 'process'],
+      },
+    ],
+  },
+  {
     id: 'inkwell-meta',
     kind: 'writing',
     name: 'Inkwell itself',
-    meta: 'inkwell · this tool',
+    meta: 'inkwell · this tool · live demo at inkwell.anujaharsha.com',
     blurb:
-      'The tool you\'re reading this in is a design artifact: a writing app that decouples bursts from publishing, built for exactly how you work.',
+      'The tool you\'re reading this in is a design artifact: a writing studio that decouples bursts from publishing, coaches in your own learned voice, and guards your privacy before anything ships.',
     suggestions: [
       {
         title: 'Writing as a Burst, Publishing as a Whim',
@@ -278,6 +373,16 @@ export const SOURCES: Source[] = [
         title: 'I Built the CMS That Fits How I Actually Write',
         hook: 'Local-first, a 50-article spine that bends, copy-paste publishing because the platforms killed their APIs. A tool shaped to one writer instead of a million.',
         tags: ['live', 'process', 'technical'],
+      },
+      {
+        title: 'An Editor That Learned My Voice Before It Gave Me Notes',
+        hook: 'A "learn my voice" pass distills my own published writing into a profile injected into every AI suggestion — so the coach tightens my sentences instead of replacing them with everyone\'s.',
+        tags: ['live', 'technical', 'process'],
+      },
+      {
+        title: 'The Readability Score Is Free: What a Local Intelligence Layer Buys You',
+        hook: 'Syllable counting, sentence rhythm, passive-voice detection, my own published baseline — all running on-device with zero API calls. The LLM is saved for the work that actually needs it.',
+        tags: ['live', 'technical'],
       },
     ],
   },
