@@ -19,6 +19,7 @@ import { dueWords, type Grade } from '@/lib/srs'
 import { MetricsPanel } from '@/components/MetricsPanel'
 import {
   coachLesson,
+  draftArticle,
   groundedInsights,
   isAIConfigured,
   isWebSearchAllowed,
@@ -119,11 +120,16 @@ function ImproveTab({ article }: { article: Article }) {
   const settings = useStore((s) => s.settings)
   const updateArticle = useStore((s) => s.updateArticle)
   const snapshotVersion = useStore((s) => s.snapshotVersion)
+  const allArticles = useStore((s) => s.articles)
   const push = useToast((s) => s.push)
   const [busy, setBusy] = useState('')
   const [error, setError] = useState('')
   const [draft, setDraft] = useState<{ mode: string; label: string; text: string } | null>(null)
   const [suggestions, setSuggestions] = useState<Suggestion[] | null>(null)
+
+  // A piece with (almost) no body yet can be drafted whole — from its brief
+  // (title + hook + source notes), with her published pieces as voice proof.
+  const isThin = article.body.trim().split(/\s+/).filter(Boolean).length < 50
 
   async function doAction(a: (typeof ACTIONS)[number]) {
     setBusy(a.key)
@@ -131,6 +137,24 @@ function ImproveTab({ article }: { article: Article }) {
     setDraft(null)
     try {
       setDraft({ mode: a.mode, label: a.label, text: await runQuickAction(a.key, article, settings) })
+    } catch (e) {
+      setError(errMsg(e))
+    } finally {
+      setBusy('')
+    }
+  }
+
+  async function doFullDraft() {
+    setBusy('draft')
+    setError('')
+    setDraft(null)
+    try {
+      const exemplars = Object.values(allArticles)
+        .filter((a) => a.id !== article.id && a.status === 'published' && a.body.trim().length > 400)
+        .sort((a, b) => (b.publishedAt ?? '').localeCompare(a.publishedAt ?? ''))
+        .slice(0, 2)
+        .map((a) => a.body)
+      setDraft({ mode: 'replace', label: 'First draft', text: await draftArticle(article, exemplars, settings) })
     } catch (e) {
       setError(errMsg(e))
     } finally {
@@ -156,18 +180,24 @@ function ImproveTab({ article }: { article: Article }) {
   function applyDraft() {
     if (!draft) return
     const body = article.body
+    const prevStatus = article.status
     snapshotVersion(article.id, `before ${draft.label}`) // restorable from History
+    // An idea that just gained a real body is now drafting.
+    const statusPatch = article.status === 'idea' ? { status: 'drafting' as const } : {}
     if (draft.mode === 'append') {
       const sep = body.trim() ? body.replace(/\s+$/, '') + '\n\n' : ''
-      updateArticle(article.id, { body: sep + draft.text })
+      updateArticle(article.id, { body: sep + draft.text, ...statusPatch })
     } else if (draft.mode === 'replaceFirst') {
       const idx = body.indexOf('\n\n')
-      updateArticle(article.id, { body: draft.text + (idx >= 0 ? body.slice(idx) : '') })
+      updateArticle(article.id, { body: draft.text + (idx >= 0 ? body.slice(idx) : ''), ...statusPatch })
     } else {
-      updateArticle(article.id, { body: draft.text })
+      updateArticle(article.id, { body: draft.text, ...statusPatch })
     }
     setDraft(null)
-    push('Applied — autosaved', { label: 'Undo', run: () => updateArticle(article.id, { body }) })
+    push('Applied — autosaved', {
+      label: 'Undo',
+      run: () => updateArticle(article.id, { body, status: prevStatus }),
+    })
   }
 
   function applySuggestion(sg: Suggestion, i: number) {
@@ -184,6 +214,26 @@ function ImproveTab({ article }: { article: Article }) {
 
   return (
     <div className="coach-body">
+      {isThin && (
+        <>
+          <button className="btn btn-primary btn-block coach-draft-btn" disabled={!!busy} onClick={doFullDraft}>
+            {busy === 'draft' ? (
+              <>
+                <span className="spin" /> Drafting in your voice…
+              </>
+            ) : (
+              <>
+                <Icon name="spark" size={15} /> Draft this piece
+              </>
+            )}
+          </button>
+          <p className="coach-hint" style={{ marginTop: 6 }}>
+            A full first draft from the title, hook, and source notes — written against your published pieces as voice
+            proof. You review before anything is applied.
+          </p>
+        </>
+      )}
+
       <div className="coach-section-label">Quick actions</div>
       <div className="coach-actions">
         {ACTIONS.map((a) => (

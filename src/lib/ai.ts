@@ -99,6 +99,34 @@ export async function runQuickAction(action: QuickAction, article: Article, s: S
   return complete(s, systemPrompt(s), user, max)
 }
 
+// ── Full first draft (from source material, with her writing as voice proof) ─
+// Generates a complete first draft for an idea that has no body yet, grounded
+// in the article's brief (title + hook + source notes) and PROVEN against her
+// actual published writing — two real pieces ride along as voice exemplars so
+// the draft sounds like her, not like a model.
+export async function draftArticle(article: Article, exemplars: string[], s: Settings): Promise<string> {
+  const proof = exemplars
+    .filter((t) => t.trim())
+    .slice(0, 2)
+    .map((t, i) => `--- HER PUBLISHED PIECE ${i + 1} (voice proof — match this register, do not reuse its content) ---\n${t.slice(0, 4500)}`)
+    .join('\n\n')
+
+  const user = `Write the COMPLETE first draft of the article briefed below, in her voice.
+
+Title: ${article.title || 'Untitled'}
+Editorial angle (the hook): ${article.hook || '—'}
+${article.notes.trim() ? `Source notes (where this idea comes from — stay grounded in it):\n${article.notes.trim()}` : ''}
+
+Rules:
+- 600–1,100 words of clean markdown (short paragraphs; "##" section headings only where they earn their place). Return ONLY the draft body — no title heading, no preamble, no commentary.
+- This is HER first draft, not a finished showpiece: strong shape, real momentum, honest voice. It should feel like she wrote it fast on a good day.
+- Ground every claim in the brief and in what her voice-proof pieces establish about her real life and work. Where a specific (a number, a name, a date, an anecdote's detail) is needed but not provided, leave a [bracketed placeholder] — never invent.
+- Open the way she opens (no throat-clearing), close the way she closes (a line that lands). Match the rhythm, devices, and register of the voice-proof pieces.
+${proof ? `\n${proof}` : ''}`
+
+  return complete(s, systemPrompt(s), user, 4000)
+}
+
 // ── Draft review (suggestion cards) ────────────────────────────────────────
 export type SuggestionCategory = 'clarity' | 'voice' | 'engagement' | 'correctness'
 

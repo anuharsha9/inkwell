@@ -3079,3 +3079,8 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* Full-draft button (Coach, thin/empty pieces) */
+.coach-draft-btn {
+  margin-bottom: 2px;
+}
