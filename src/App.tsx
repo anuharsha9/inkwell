@@ -12,6 +12,7 @@ import { Book } from './views/Book'
 import { Sources } from './views/Sources'
 import { Settings } from './views/Settings'
 import { TourController } from './components/tour/TourController'
+import { NewArticleDialog } from './components/NewArticleDialog'
 import { applyAccent, clearAccent } from './lib/accent'
 
 export function App() {
@@ -61,6 +62,7 @@ export function App() {
       </main>
       <TabBar />
       <Toaster />
+      <NewArticleDialog />
       <TourController />
     </div>
   )

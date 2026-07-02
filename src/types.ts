@@ -21,6 +21,8 @@ export type Status =
 
 export type Tag = 'existing' | 'live' | 'process' | 'human' | 'technical'
 
+export type Format = 'article' | 'post'
+
 export type Platform = 'substack' | 'linkedin' | 'medium'
 
 export type ImageSource = 'upload' | 'url' | 'ai' | 'stock'
@@ -54,6 +56,7 @@ export interface Article {
   // Optional publish date (ISO yyyy-mm-dd) — claims a slot in the dashboard's
   // publishing plan. Cleared automatically when the piece is marked published.
   scheduledFor?: string | null
+  format: Format
   coverImageId: string | null // → InkImage.id (images stored separately, see PRD §5.5 storage)
   imageIds: string[] // additional inline images used in the body
   configTalk: boolean // does this article feed the Figma Config talk?

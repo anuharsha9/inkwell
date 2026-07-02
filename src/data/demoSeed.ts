@@ -125,6 +125,7 @@ export function buildDemoArticles(): Article[] {
     notes: '',
     coverImageId: null,
     imageIds: [],
+    format: 'article',
     configTalk: number === 2 || number === 3,
     configNote: '',
   }))

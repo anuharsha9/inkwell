@@ -107,14 +107,15 @@ export function Editor() {
           </button>
           <NumberBadge number={article.number} />
           <SaveIndicator state={saveState} />
-          <button
-            className={`privacy-pill ${privacyCount > 0 ? 'flag' : 'clean'}`}
-            onClick={() => openCoach('checks')}
-            title={privacyCount > 0 ? `${privacyCount} possible private detail(s) — review before publishing` : 'No private details detected'}
-          >
-            <Icon name="shield" size={14} />
-            {privacyCount > 0 ? privacyCount : 'Private-safe'}
-          </button>
+          {privacyCount > 0 && (
+            <button
+              className="privacy-pill flag"
+              onClick={() => openCoach('checks')}
+              title={`${privacyCount} possible private detail(s) — review before publishing`}
+            >
+              <Icon name="shield" size={14} /> {privacyCount}
+            </button>
+          )}
         </div>
 
         <div className="editor-bar-right">
@@ -129,15 +130,6 @@ export function Editor() {
               Split
             </button>
           </div>
-
-          <button
-            className="icon-btn"
-            onClick={() => (historyOpen ? setHistoryOpen(false) : (setCoachOpen(false), setHistoryOpen(true)))}
-            title="Version history"
-            aria-label="Version history"
-          >
-            <Icon name="reroll" size={18} />
-          </button>
 
           <button
             className={`btn ${coachOpen ? 'btn-primary' : 'btn-soft'}`}
@@ -162,6 +154,9 @@ export function Editor() {
             )}
             children={(close) => (
               <>
+                <MenuItem onClick={() => (setCoachOpen(false), setHistoryOpen(true), close())}>
+                  <Icon name="reroll" size={14} /> Version history
+                </MenuItem>
                 <MenuItem onClick={() => (copyBody(article), close())}>
                   <Icon name="copy" size={14} /> Copy body only
                 </MenuItem>
@@ -285,21 +280,25 @@ export function Editor() {
 }
 
 function SaveIndicator({ state }: { state: 'idle' | 'saving' | 'saved' }) {
+  // Quiet by default — a plain check (tooltip explains). Only "Saving…" and the
+  // brief "Saved" confirmation spell it out, so the bar stays calm at rest.
+  if (state === 'saving') {
+    return (
+      <span className="save-ind saving">
+        <span className="save-dot" /> Saving…
+      </span>
+    )
+  }
+  if (state === 'saved') {
+    return (
+      <span className="save-ind saved">
+        <Icon name="check" size={13} strokeWidth={2.2} /> Saved
+      </span>
+    )
+  }
   return (
-    <span className={`save-ind ${state}`}>
-      {state === 'saving' ? (
-        <>
-          <span className="save-dot" /> Saving…
-        </>
-      ) : state === 'saved' ? (
-        <>
-          <Icon name="check" size={13} strokeWidth={2.2} /> Saved
-        </>
-      ) : (
-        <>
-          <Icon name="check" size={13} strokeWidth={2.2} /> Autosave on
-        </>
-      )}
+    <span className="save-ind idle" title="Autosave is on — you can't lose your work">
+      <Icon name="check" size={13} strokeWidth={2.2} />
     </span>
   )
 }

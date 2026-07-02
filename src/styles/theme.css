@@ -15,9 +15,14 @@
   --font-mono: 'IBM Plex Mono', ui-monospace, 'SF Mono', monospace;
 
   /* ── The signature accent (user-themeable, Moleskine-app style) ───────
-     --accent-user is set inline by Settings; falls back to ink indigo. */
+     --accent-user is set inline by Settings; falls back to ink indigo.
+     --accent      → text, icons, borders, tints (on the page background)
+     --accent-fill → solid button/badge FILLS (always paired with --on-accent)
+     In light mode the same dark indigo works for both; dark mode splits them so
+     white text stays legible on fills while accent text stays legible on black. */
   --accent: var(--accent-user, #3f4ba8); /* ink indigo */
-  --accent-press: color-mix(in srgb, var(--accent) 86%, #000);
+  --accent-fill: var(--accent);
+  --accent-press: color-mix(in srgb, var(--accent-fill) 86%, #000);
   --accent-tint: color-mix(in srgb, var(--accent) 12%, transparent);
   --accent-tint-soft: color-mix(in srgb, var(--accent) 7%, transparent);
   --on-accent: #ffffff;
@@ -65,34 +70,39 @@
   --rail: 232px; /* left nav rail width */
 }
 
-/* ── Dark theme — the notebook at night, accent pops ───────────────────── */
+/* ── Dark theme — true black, dark grays, navy undertone, lavender accent ── */
 [data-theme='dark'] {
-  --canvas: #16140f;
-  --canvas-sunk: #100e0a;
-  --surface: #211e18;
-  --surface-2: #1b1813;
-  --surface-hover: #2a261f;
+  --canvas: #09090b;
+  --canvas-sunk: #060608;
+  --surface: #131318;
+  --surface-2: #0e0e13;
+  --surface-hover: #1a1a22;
 
-  --ink: #ece4d3;
-  --ink-soft: #a59d8c;
-  --ink-faint: #8a82716e;
-  --ink-mute: #8e8676;
+  --ink: #e8e6f0;
+  --ink-soft: #9d9aab;
+  --ink-faint: #6b687a6e;
+  --ink-mute: #7e7b8e;
 
-  --line: #322d24;
-  --line-strong: #423b30;
+  --line: #1f1f2a;
+  --line-strong: #2a2a38;
 
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
-  --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.34), 0 8px 22px rgba(0, 0, 0, 0.3);
-  --shadow-lg: 0 10px 30px rgba(0, 0, 0, 0.46), 0 22px 56px rgba(0, 0, 0, 0.4);
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.44), 0 8px 22px rgba(0, 0, 0, 0.38);
+  --shadow-lg: 0 10px 30px rgba(0, 0, 0, 0.56), 0 22px 56px rgba(0, 0, 0, 0.5);
 
-  --accent: var(--accent-user-dark, #8b95e8); /* lifted indigo for dark ground */
-  --accent-press: color-mix(in srgb, var(--accent) 88%, #fff);
-  --on-accent: #16140f;
+  /* Split accent: light lavender for TEXT on black; deep indigo for FILLS so
+     white button text passes contrast (WCAG AA). */
+  --accent: var(--accent-user-dark, #9aa0e8); /* readable lavender on the black canvas */
+  --accent-fill: #4a4fa0; /* deep indigo-lavender — white text reads clearly */
+  --accent-press: color-mix(in srgb, var(--accent-fill) 84%, #fff);
+  --accent-tint: color-mix(in srgb, var(--accent) 12%, transparent);
+  --accent-tint-soft: color-mix(in srgb, var(--accent) 6%, transparent);
+  --on-accent: #ffffff;
 
-  --status-idea: #a39d8b;
+  --status-idea: #9a98ab;
   --status-drafting: #cf9c4e;
   --status-ready: #7fae74;
-  --status-published: #8b99d6;
+  --status-published: #9ba3f0;
 }
 
 /* ═══════════════════════════════════════════════════════════════════════

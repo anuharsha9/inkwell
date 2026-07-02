@@ -1,12 +1,11 @@
 import { useMemo, useState } from 'react'
 import { useStore } from '@/store'
 import { publishingPlan, readyQueue } from '@/lib/selectors'
-import { STATUS_META } from '@/lib/constants'
+import { FORMAT_META, STATUS_META } from '@/lib/constants'
 import { Dashboard } from '@/components/Dashboard'
 import { Icon } from '@/components/Icon'
 import { Markdown } from '@/components/editor/Markdown'
 import { useToast } from '@/components/ui'
-import { useCopyArticle } from '@/components/PublishActions'
 import { corpusInsight, isAIConfigured, isAIDisabledByGovernance } from '@/lib/ai'
 import { analyze } from '@/lib/textmetrics'
 import { activeSources } from '@/data/sources'
@@ -52,7 +51,6 @@ function Pipeline() {
   const setView = useStore((s) => s.setView)
   const createIdeaFrom = useStore((s) => s.createIdeaFrom)
   const markPublished = useStore((s) => s.markPublished)
-  const { copyFull } = useCopyArticle()
   const push = useToast((s) => s.push)
 
   const list = Object.values(articles)
@@ -117,22 +115,15 @@ function Pipeline() {
                   {a.title || 'Untitled'}
                 </button>
                 <span className="plan-meta">
-                  {slot.assigned === 'scheduled' && <Icon name="pin" size={11} strokeWidth={2} />}
+                  <span className={`plan-format f-${a.format ?? 'article'}`}>
+                    {FORMAT_META[a.format ?? 'article'].short}
+                  </span>
                   <span className={`plan-status s-${a.status}`}>{STATUS_META[a.status].label}</span>
                 </span>
                 <span className="plan-actions">
-                  {a.status === 'ready' ? (
-                    <>
-                      <button className="mini-btn add" onClick={() => void copyFull(a)} title="Copy the article — paste & post">
-                        <Icon name="copy" size={12} /> Copy
-                      </button>
-                      <button className="mini-btn" onClick={() => markPublished(a.id)} title="Mark as published">
-                        <Icon name="check" size={12} strokeWidth={2} /> Published
-                      </button>
-                    </>
-                  ) : (
-                    <button className="mini-btn" onClick={() => openEditor(a.id)}>
-                      <Icon name="pen" size={12} /> {a.status === 'drafting' ? 'Finish' : 'Write'}
+                  {a.status === 'ready' && (
+                    <button className="mini-btn plan-publish" onClick={() => markPublished(a.id)} title="Mark this piece as published">
+                      <Icon name="check" size={12} strokeWidth={2} /> Publish
                     </button>
                   )}
                 </span>

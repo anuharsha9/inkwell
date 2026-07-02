@@ -108,6 +108,7 @@ export function buildSeedArticles(): Article[] {
     notes: '',
     coverImageId: null,
     imageIds: [],
+    format: 'article',
     configTalk: CONFIG_TALK_NUMBERS.has(number),
     configNote: '',
   }))

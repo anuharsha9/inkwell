@@ -71,14 +71,47 @@ async function createMsg(
   return c.messages.create({ model, ...params })
 }
 
+// LinkedIn algorithm knowledge — embedded so every AI surface can give
+// platform-aware advice when the piece targets LinkedIn.
+const LINKEDIN_PLAYBOOK = `## LinkedIn algorithm & best practices (2024–2026)
+**What the algorithm rewards:**
+- Dwell time is the #1 signal: long reads that hold attention outperform short hot-takes. Write so people stop scrolling.
+- Native text posts (no outbound links in the body) get 2–3× the reach of link posts. Put links in the FIRST COMMENT, never in the body.
+- The first 2–3 lines are the hook — they appear above the "…see more" fold. If those lines don't create curiosity or tension, nobody clicks.
+- Carousel documents (PDF slides) and image posts get boosted; plain text posts with strong hooks are the next best.
+- Early engagement (first 60–90 min) determines viral reach. Posts that get comments (not just likes) in the first hour get pushed to 2nd/3rd degree connections.
+- Comments > reactions > reshares in algorithmic weight. Write to provoke thoughtful replies, not just agreement.
+- Posting frequency sweet spot: 2–4× per week. Daily posting cannibalizes your own reach.
+
+**What the algorithm penalizes:**
+- External links in the post body (LinkedIn wants people to stay on LinkedIn).
+- Engagement bait ("like if you agree", "comment YES for…") — explicitly demoted since 2024.
+- Excessive hashtags (>5) or irrelevant ones. 3–5 targeted hashtags is optimal.
+- Editing a post within the first hour kills its momentum.
+- Tagging people who don't engage back (looks spammy to the algorithm).
+
+**Post format that performs best for thought leadership:**
+- Hook line (curiosity/tension/bold claim) → story/insight (3–8 short paragraphs, lots of white space, one idea per line) → clear takeaway or question that invites comments.
+- Use line breaks liberally — LinkedIn renders as mobile-first; walls of text die.
+- 150–300 words for posts; 800–1,200 words for articles (LinkedIn Articles are a separate format with lower reach but SEO value).
+- End with a genuine question or a "here's what I'd change" prompt — drives comments.
+- Personal stories with professional lessons outperform pure advice.
+
+**Post vs. Article distinction:**
+- A "post" is the feed-native format (appears directly in the feed, up to ~3,000 chars). This is where reach lives.
+- An "article" is LinkedIn's long-form publishing (separate page, lower feed distribution, but indexed by Google). Use for evergreen/portfolio pieces.
+- For building an audience: posts 80%, articles 20%.`
+
 // The persona every call shares: Inkwell's in-house editor who knows HER voice.
-function systemPrompt(s: Settings): string {
+function systemPrompt(s: Settings, article?: Article): string {
   const voice = s.voiceProfile.trim()
+  const targetsLinkedIn = article ? (article.platforms.includes('linkedin') || article.format === 'post') : true
   return [
     'You are the in-house writing editor AND writing teacher inside Inkwell, a personal writing app owned by Anuja Harsha — a Staff-level product designer turned design-engineer who writes sharp, honest, first-person essays about design, AI, and her career.',
     'Your job is to make HER writing better in HER voice — never to flatten it into generic AI prose. Preserve her cadence, her directness, her specifics. Tighten, sharpen, and clarify; do not sanitize or pad.',
     'You are also teaching her to improve. When you suggest a change, make the underlying craft principle legible so she learns it and applies it herself next time — the goal is that she needs you less over time, not more.',
     voice ? `\nHer voice profile (learned from her own writing — honor it):\n${voice}` : '',
+    targetsLinkedIn ? `\n${LINKEDIN_PLAYBOOK}\n\nApply this knowledge when drafting, reviewing, or coaching — especially for posts. Suggest LinkedIn-optimal formatting (line breaks, hook above the fold, no outbound links in the body, question ending). When the piece is a "post" format, enforce the post constraints (feed-native, ~150–300 words, mobile-readable spacing). When it's a "full article", it can be longer but still mention where to put the LinkedIn link (first comment).` : '',
     '\nNever invent facts, names, numbers, or events. If a claim needs a real detail she has not provided, leave a clear [bracketed placeholder] rather than fabricating.',
     '\nShe publishes in public, so treat her real personal specifics as private and keep them GENERIC in anything you write or revise: exact salary/compensation/offer amounts and other financial figures (e.g. "$138K" → "a competitive offer" or "[a generic figure]"), her birthdate, home address, and contact details, and exact employer or client company names (→ a generic descriptor like "a large enterprise software company"). Never introduce, amplify, or carry a real specific figure or named company into the draft — even if it appears in the title, hook, or her notes. If genericizing would lose needed meaning, leave a [bracketed placeholder] for her to decide.',
   ]
@@ -122,9 +155,12 @@ export async function runQuickAction(action: QuickAction, article: Article, s: S
   const body = article.body.trim() || '(The draft is currently empty.)'
   const strict =
     '\n\nCRITICAL: Output ONLY the resulting article text itself — no preamble, no explanation of your changes, no notes, no headings you added, no code fences. The output replaces the draft directly, so it must contain nothing but the writing.'
-  const user = `Title: ${article.title || 'Untitled'}\nAngle: ${article.hook || '—'}\n\n${brief}${strict}\n\n--- DRAFT ---\n${body}`
+  const formatNote = article.format === 'post'
+    ? '\n\nIMPORTANT: This is a LinkedIn POST (feed-native, ~150–300 words, lots of line breaks, mobile-first). Keep it short, punchy, and formatted for the feed — not an article.'
+    : ''
+  const user = `Title: ${article.title || 'Untitled'}\nAngle: ${article.hook || '—'}${formatNote}\n\n${brief}${strict}\n\n--- DRAFT ---\n${body}`
   const max = action === 'continue' ? 1200 : action === 'expand' ? 3000 : 2600
-  return complete(s, systemPrompt(s), user, max)
+  return complete(s, systemPrompt(s, article), user, max)
 }
 
 // ── Full first draft (from source material, with her writing as voice proof) ─
@@ -139,20 +175,27 @@ export async function draftArticle(article: Article, exemplars: string[], s: Set
     .map((t, i) => `--- HER PUBLISHED PIECE ${i + 1} (voice proof — match this register, do not reuse its content) ---\n${t.slice(0, 4500)}`)
     .join('\n\n')
 
-  const user = `Write the COMPLETE first draft of the article briefed below, in her voice.
+  const isPost = article.format === 'post'
+  const lengthRule = isPost
+    ? '- 150–300 words. This is a LinkedIn POST (feed-native): short paragraphs (1–2 sentences each), generous line breaks, mobile-first. The first 2 lines must hook above the "…see more" fold. End with a question or prompt that invites comments. NO outbound links in the body. NO hashtags in the body (she adds those herself). NO engagement bait.'
+    : '- 600–1,100 words of clean markdown (short paragraphs; "##" section headings only where they earn their place).'
+
+  const user = `Write the COMPLETE first draft of the ${isPost ? 'LinkedIn post' : 'article'} briefed below, in her voice.
 
 Title: ${article.title || 'Untitled'}
 Editorial angle (the hook): ${article.hook || '—'}
+Format: ${isPost ? 'LinkedIn post (feed-native, short)' : 'Full article'}
 ${article.notes.trim() ? `Source notes (where this idea comes from — stay grounded in it):\n${article.notes.trim()}` : ''}
 
 Rules:
-- 600–1,100 words of clean markdown (short paragraphs; "##" section headings only where they earn their place). Return ONLY the draft body — no title heading, no preamble, no commentary.
+${lengthRule}
+- Return ONLY the draft body — no title heading, no preamble, no commentary.
 - This is HER first draft, not a finished showpiece: strong shape, real momentum, honest voice. It should feel like she wrote it fast on a good day.
 - Ground every claim in the brief and in what her voice-proof pieces establish about her real life and work. Where a specific (a number, a name, a date, an anecdote's detail) is needed but not provided, leave a [bracketed placeholder] — never invent.
 - Open the way she opens (no throat-clearing), close the way she closes (a line that lands). Match the rhythm, devices, and register of the voice-proof pieces.
 ${proof ? `\n${proof}` : ''}`
 
-  return complete(s, systemPrompt(s), user, 4000)
+  return complete(s, systemPrompt(s, article), user, isPost ? 1200 : 4000)
 }
 
 // ── Draft review (suggestion cards) ────────────────────────────────────────
@@ -173,8 +216,13 @@ Rules: 4–8 suggestions, highest-impact first. "before" MUST be an exact substr
 export async function reviewDraft(article: Article, s: Settings): Promise<Suggestion[]> {
   const body = article.body.trim()
   if (!body) return []
-  const user = `Title: ${article.title || 'Untitled'}\nAngle: ${article.hook || '—'}\n\nReview this draft as her editor and surface the highest-impact improvements across clarity, voice, engagement, and correctness.\n\n${REVIEW_SCHEMA_HINT}\n\n--- DRAFT ---\n${body}`
-  const raw = await complete(s, systemPrompt(s), user, 2600)
+  const formatCtx = article.format === 'post'
+    ? ' This is a LinkedIn POST — also check: hook above the fold, line break density, length (should be 150–300 words), no outbound links in body, ending with a comment-provoking question.'
+    : article.platforms.includes('linkedin')
+      ? ' This targets LinkedIn — also flag any outbound links that should move to the first comment, and check that the opening hooks above the fold.'
+      : ''
+  const user = `Title: ${article.title || 'Untitled'}\nAngle: ${article.hook || '—'}\nFormat: ${article.format === 'post' ? 'LinkedIn post' : 'Full article'}\n\nReview this draft as her editor and surface the highest-impact improvements across clarity, voice, engagement, and correctness.${formatCtx}\n\n${REVIEW_SCHEMA_HINT}\n\n--- DRAFT ---\n${body}`
+  const raw = await complete(s, systemPrompt(s, article), user, 2600)
   return parseSuggestions(raw)
 }
 
@@ -207,15 +255,18 @@ function parseSuggestions(raw: string): Suggestion[] {
 export async function coachLesson(article: Article, s: Settings): Promise<string> {
   const body = article.body.trim()
   if (!body) return ''
+  const linkedInNote = (article.format === 'post' || article.platforms.includes('linkedin'))
+    ? '\n\nThis piece targets LinkedIn — include one LinkedIn-specific craft tip (hook placement, formatting for mobile feed, comment-driving endings, etc.) if relevant.'
+    : ''
   const user = `Read this draft and teach me as my writing coach. Be specific to THIS text — quote from it. Keep it under 220 words, in exactly these three short markdown sections:
 
 **What's working** — one or two genuine strengths (name the craft move).
 **One habit to work on** — the single highest-leverage thing (e.g. "you explain too much", "your framing is buried", "sentence length never varies"). Show one before→after from the draft.
-**Try this next** — one concrete micro-exercise for her next writing session.
+**Try this next** — one concrete micro-exercise for her next writing session.${linkedInNote}
 
 --- DRAFT ---
 ${body}`
-  return complete(s, systemPrompt(s), user, 1100)
+  return complete(s, systemPrompt(s, article), user, 1100)
 }
 
 // ── Grounded insights (web-sourced craft guidance, cited) ──────────────────
@@ -235,7 +286,7 @@ Keep it under 350 words, markdown, in my coach's voice. Ground every insight in 
 ${body}`
   const res = await createMsg(s, {
     max_tokens: 2600,
-    system: systemPrompt(s),
+    system: systemPrompt(s, article),
     tools: [{ type: 'web_search_20260209', name: 'web_search', max_uses: 4 }] as Anthropic.Messages.ToolUnion[],
     messages: [{ role: 'user', content: user }],
   })

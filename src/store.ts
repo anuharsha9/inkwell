@@ -1,10 +1,10 @@
 import { create } from 'zustand'
-import type { Article, InkImage, Phase, Platform, Settings, Status, Tag } from '@/types'
+import type { Article, Format, InkImage, Phase, Platform, Settings, Status, Tag } from '@/types'
 import type { Source, Suggestion } from '@/data/sources'
 import * as db from '@/lib/storage'
 import { countWords, nowISO, uuid } from '@/lib/text'
 import { removeArticleFile, syncArticleFile } from '@/lib/localArchive'
-import { parseBackup } from '@/lib/backup'
+import { parseBackup, type Backup } from '@/lib/backup'
 import { reviewCard, type Grade } from '@/lib/srs'
 import { DEMO_MODE } from '@/lib/env'
 
@@ -30,6 +30,12 @@ export interface Filters {
 
 const EMPTY_FILTERS: Filters = { statuses: [], phases: [], tags: [], platforms: [], search: '' }
 
+export interface NewArticleDialog {
+  open: boolean
+  format: Format
+  scheduledFor: string
+}
+
 interface InkState {
   loaded: boolean
   articles: Record<string, Article>
@@ -44,6 +50,7 @@ interface InkState {
   groupBy: GroupBy
   filters: Filters
   saveState: SaveState
+  newDialog: NewArticleDialog
 
   // lifecycle
   init: () => Promise<void>
@@ -56,8 +63,11 @@ interface InkState {
   clearFilters: () => void
   toggleTheme: () => void
 
-  // articles
-  createArticle: () => string
+  // articles — createArticle opens the new-article dialog; confirmCreate finalizes it
+  createArticle: () => void
+  confirmCreate: () => string
+  cancelCreate: () => void
+  updateNewDialog: (patch: Partial<NewArticleDialog>) => void
   createIdeaFrom: (seed: Partial<Article>, opts?: { open?: boolean }) => string
   updateArticle: (id: string, patch: Partial<Article>, opts?: { immediate?: boolean }) => void
   setStatus: (id: string, status: Status) => void
@@ -98,6 +108,9 @@ interface InkState {
     vocab?: db.SavedWord[],
     customSources?: Source[],
   ) => Promise<void>
+  // Non-destructive merge from the shell backup on launch — propagates data
+  // corrections and schema-migration fields without clobbering local edits.
+  reconcileFromBackup: (backup: Backup) => Promise<number>
 }
 
 const STATUS_CYCLE: Status[] = ['idea', 'drafting', 'ready', 'published']
@@ -158,6 +171,7 @@ export const useStore = create<InkState>((set, get) => {
     groupBy: 'phase',
     filters: EMPTY_FILTERS,
     saveState: 'idle',
+    newDialog: { open: false, format: 'article', scheduledFor: '' },
 
     async init() {
       await db.ensureSeeded()
@@ -178,20 +192,26 @@ export const useStore = create<InkState>((set, get) => {
 
       set({ loaded: true, articles: articleMap, images: imageMap, settings, vocab, customSources, theme: savedTheme })
 
-      // Desktop auto-hydration: a never-used install (pristine seed) pulls her
-      // real data from the shell's /__inkwell/bootstrap backup automatically —
-      // no manual import step. No-op in the demo, in dev (non-pristine), or
-      // when the endpoint doesn't exist.
-      if (!DEMO_MODE && db.isPristineSeed(articles)) {
+      // Shell backup sync (no-op in the demo or when the endpoint is absent):
+      //  · A never-used install (pristine seed) → full auto-hydration.
+      //  · An established install → a non-destructive reconcile that propagates
+      //    data corrections and new schema fields (e.g. `format`) from the
+      //    durable backup WITHOUT overwriting her local edits. This is how a fix
+      //    made to inkwell-backup.json reaches the desktop app on next launch.
+      if (!DEMO_MODE) {
         try {
           const res = await fetch('/__inkwell/bootstrap')
           if (res.ok) {
             const backup = parseBackup(await res.text())
-            await get().importBackup(backup.articles, backup.images ?? [], backup.settings, backup.vocab, backup.customSources)
-            set({ view: DEMO_MODE ? 'learn' : 'home', activeId: null })
+            if (db.isPristineSeed(articles)) {
+              await get().importBackup(backup.articles, backup.images ?? [], backup.settings, backup.vocab, backup.customSources)
+              set({ view: 'home', activeId: null })
+            } else {
+              await get().reconcileFromBackup(backup)
+            }
           }
         } catch {
-          /* no shell backup — stay on the seed */
+          /* no shell backup — stay on local data */
         }
       }
     },
@@ -224,7 +244,25 @@ export const useStore = create<InkState>((set, get) => {
     },
 
     createArticle() {
-      return get().createIdeaFrom({}, { open: true })
+      set({ newDialog: { open: true, format: 'article', scheduledFor: '' } })
+    },
+
+    confirmCreate() {
+      const { format, scheduledFor } = get().newDialog
+      const id = get().createIdeaFrom(
+        { format, scheduledFor: scheduledFor || null },
+        { open: true },
+      )
+      set({ newDialog: { open: false, format: 'article', scheduledFor: '' } })
+      return id
+    },
+
+    cancelCreate() {
+      set({ newDialog: { open: false, format: 'article', scheduledFor: '' } })
+    },
+
+    updateNewDialog(patch) {
+      set({ newDialog: { ...get().newDialog, ...patch } })
     },
 
     createIdeaFrom(seed, opts) {
@@ -239,6 +277,7 @@ export const useStore = create<InkState>((set, get) => {
         phase: 'unfiled',
         tags: [],
         status: 'idea',
+        format: 'article',
         platforms: ['substack', 'linkedin'],
         wordCount: 0,
         createdAt: ts,
@@ -467,6 +506,57 @@ export const useStore = create<InkState>((set, get) => {
         await db.saveCustomSources(customSources)
       }
       set({ ...patch, view: 'archive', activeId: null })
+    },
+
+    async reconcileFromBackup(backup) {
+      const localArticles = get().articles
+      const localImages = get().images
+      const toPut: Article[] = []
+      const imgToPut: InkImage[] = []
+
+      for (const b of backup.articles) {
+        const l = localArticles[b.id]
+        if (!l) {
+          // A piece that exists in the durable backup but not locally — adopt it.
+          toPut.push(b)
+          continue
+        }
+        // Per-article last-write-wins: a genuinely newer backup entry is a
+        // correction and replaces the local copy; her newer local edits win.
+        if (b.updatedAt && l.updatedAt && b.updatedAt > l.updatedAt) {
+          toPut.push({ ...b })
+          continue
+        }
+        // Same-or-older backup: only backfill fields the local copy is MISSING
+        // (schema evolution like `format`). Never overwrite an existing value,
+        // so not a single word of her drafts is touched.
+        let patched: Article | null = null
+        for (const k of Object.keys(b) as (keyof Article)[]) {
+          if (l[k] === undefined && b[k] !== undefined) {
+            patched = patched ?? { ...l }
+            ;(patched as unknown as Record<string, unknown>)[k as string] = b[k]
+          }
+        }
+        if (patched) toPut.push(patched)
+      }
+
+      // Additive: pull in any images the backup has that we don't (safe — keyed by id).
+      for (const img of backup.images ?? []) {
+        if (!localImages[img.id]) imgToPut.push(img)
+      }
+
+      if (!toPut.length && !imgToPut.length) return 0
+
+      set((s) => {
+        const articles = { ...s.articles }
+        for (const a of toPut) articles[a.id] = a
+        const images = { ...s.images }
+        for (const i of imgToPut) images[i.id] = i
+        return { articles, images }
+      })
+      for (const a of toPut) await db.putArticle(a)
+      for (const i of imgToPut) await db.putImage(i)
+      return toPut.length + imgToPut.length
     },
   }
 })

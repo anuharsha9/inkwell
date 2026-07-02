@@ -1,6 +1,8 @@
 import { useStore } from '@/store'
-import type { Article, Phase, Platform, Tag } from '@/types'
+import type { Article, Format, Phase, Platform, Tag } from '@/types'
 import {
+  FORMAT_META,
+  FORMAT_ORDER,
   PHASE_META,
   PHASE_ORDER,
   PLATFORM_META,
@@ -36,6 +38,22 @@ export function MetaPanel({ article, onInsert }: { article: Article; onInsert: (
             >
               <span className="dot" />
               {STATUS_META[s].label}
+            </button>
+          ))}
+        </div>
+      </section>
+
+      {/* Format */}
+      <section className="meta-section">
+        <div className="meta-label">Format</div>
+        <div className="chip-wrap">
+          {FORMAT_ORDER.map((f: Format) => (
+            <button
+              key={f}
+              className={`chip ${(article.format ?? 'article') === f ? 'on' : ''}`}
+              onClick={() => updateArticle(article.id, { format: f }, { immediate: true })}
+            >
+              {FORMAT_META[f].label}
             </button>
           ))}
         </div>

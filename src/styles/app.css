@@ -50,7 +50,7 @@
   width: 30px;
   height: 30px;
   border-radius: 9px;
-  background: var(--accent);
+  background: var(--accent-fill);
   color: var(--on-accent);
   display: grid;
   place-items: center;
@@ -151,7 +151,7 @@
   transform: translateY(0.5px);
 }
 .btn-primary {
-  background: var(--accent);
+  background: var(--accent-fill);
   color: var(--on-accent);
   box-shadow: var(--shadow-accent);
 }
@@ -227,25 +227,28 @@
   align-items: center;
   gap: 16px;
   padding: 18px 24px;
-  background: var(--accent);
-  color: var(--on-accent);
+  background: var(--surface);
+  color: var(--ink);
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--accent);
   border-radius: var(--r-lg);
-  box-shadow: var(--shadow-accent);
+  box-shadow: var(--shadow-sm);
   flex: 1 1 280px;
   min-width: 240px;
 }
 .dash-hero .num {
-  font-family: var(--font-display);
+  font-family: var(--font-ui);
   font-size: 52px;
   font-weight: 500;
   line-height: 0.9;
   letter-spacing: -0.02em;
   font-variant-numeric: tabular-nums;
+  color: var(--accent);
 }
 .dash-hero .lbl {
   font-size: 13.5px;
   font-weight: 500;
-  opacity: 0.92;
+  color: var(--ink-soft);
   line-height: 1.3;
   max-width: 12ch;
 }
@@ -268,7 +271,7 @@
   box-shadow: var(--shadow-sm);
 }
 .stat .num {
-  font-family: var(--font-display);
+  font-family: var(--font-ui);
   font-size: 28px;
   font-weight: 500;
   line-height: 1;
@@ -571,7 +574,7 @@ button.pill:hover {
   width: 44px;
   height: 44px;
   border-radius: 12px;
-  background: var(--accent);
+  background: var(--accent-fill);
   color: var(--on-accent);
   display: grid;
   place-items: center;
@@ -657,7 +660,7 @@ button.pill:hover {
     width: 54px;
     height: 54px;
     border-radius: 50%;
-    background: var(--accent);
+    background: var(--accent-fill);
     color: var(--on-accent);
     box-shadow: var(--shadow-accent), 0 8px 22px rgba(20, 16, 10, 0.22);
     transition: transform var(--t-med) var(--ease-out), opacity var(--t-med) var(--ease);
@@ -786,7 +789,7 @@ button.pill:hover {
   padding: 10px 16px;
   border: none;
   border-radius: 999px;
-  background: var(--accent);
+  background: var(--accent-fill);
   color: #fff;
   font-family: var(--font-ui);
   font-size: 13.5px;

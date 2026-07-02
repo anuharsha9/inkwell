@@ -31,6 +31,7 @@ function article(over: Partial<Article> = {}): Article {
     notes: '',
     coverImageId: null,
     imageIds: [],
+    format: 'article',
     configTalk: false,
     configNote: '',
     ...over,

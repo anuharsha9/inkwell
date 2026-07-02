@@ -1,4 +1,4 @@
-import type { Phase, Platform, Status, Tag } from '@/types'
+import type { Format, Phase, Platform, Status, Tag } from '@/types'
 
 // Display metadata kept as data, not scattered through JSX. Colors are CSS var
 // names so light/dark themes resolve them — see styles/theme.css.
@@ -31,6 +31,13 @@ export const TAG_META: Record<Tag, { label: string }> = {
   process: { label: 'process' },
   human: { label: 'human' },
   technical: { label: 'technical' },
+}
+
+export const FORMAT_ORDER: Format[] = ['article', 'post']
+
+export const FORMAT_META: Record<Format, { label: string; short: string }> = {
+  article: { label: 'Full article', short: 'Article' },
+  post: { label: 'Post', short: 'Post' },
 }
 
 export const PLATFORM_ORDER: Platform[] = ['substack', 'linkedin', 'medium']
