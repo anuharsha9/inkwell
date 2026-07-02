@@ -357,6 +357,41 @@ export const SOURCES: Source[] = [
     ],
   },
   {
+    id: 'design-philosophy',
+    kind: 'career',
+    name: 'My design philosophy',
+    meta: 'docs/design-philosophy.md · the master doc — chair test, 5 laws, aesthetic, beliefs',
+    blurb:
+      'The single source of truth for who you are as a designer: the chair philosophy and its five affordance laws, the pattern in everything you build ("adaptive systems that learn the user"), what you\'re drawn to (the 40-year-old black box nobody wants to touch), the aurora/ocean/dim-light aesthetic, and the beliefs — illegible complexity is the enemy, feasibility is part of the craft, never a loose end.',
+    suggestions: [
+      {
+        title: 'Software Should Learn You',
+        hook: "Every product I've ever built — professional or personal — turns out to be the same thing: an adaptive system that learns the user and extends their thinking. I didn't plan the pattern. I can't build the boring version of anything.",
+        tags: ['technical', 'human'],
+      },
+      {
+        title: 'Fact ≠ Forecast: Honesty as a Design Law',
+        hook: 'A current balance should look settled and exact. A 2039 projection should look uncertain — a range, a cone, lighter ink. When a forecast masquerades as a fact, the design is lying. "Real data, no assumptions," made visual.',
+        tags: ['technical', 'process'],
+      },
+      {
+        title: 'Aurora, Ocean, Dim Light: Designing From Innate Taste',
+        hook: "My aesthetic isn't a trend I adopted — it's the northern lights, ocean waves, and dark dim light I've loved since childhood, turned into a motion system. Whispering intensity: the screen is alive, but barely.",
+        tags: ['human', 'process'],
+      },
+      {
+        title: "I Can't Build the Boring Version",
+        hook: "I'm a utility person, not an entertainment person. I only build what's missing, never what exists — and I run toward the black box nobody wants to touch, because you can't rebuild something beautifully until you understand the mess.",
+        tags: ['human', 'process'],
+      },
+      {
+        title: "Design That Engineering Can't Build Isn't Good Design",
+        hook: 'Feasibility is part of the craft. I befriend engineers, learn the constraints, and back design with evidence instead of taste — because trust with engineering is what gets good design shipped.',
+        tags: ['process', 'technical'],
+      },
+    ],
+  },
+  {
     id: 'claude-memory',
     kind: 'career',
     name: "Claude Code's memory of me",
