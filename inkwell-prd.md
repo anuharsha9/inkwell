@@ -109,7 +109,7 @@ Not persisted — produced on demand by the privacy guard: `{ category (finance|
 
 ### Derived
 - `wordCount` recomputed from body on save.
-- Inventory counts per status; "X of 50 plan complete" (ready or published).
+- Inventory counts per status; "X of 50 finished toward the habit goal" — **50 is a motivational goal, not a cap** (her words: "if I do 50, I'll get addicted to writing regularly"). Every finished piece (ready or published, planned or ad-hoc) counts; the studio keeps growing past 50.
 - "Ready to publish" = `status === ready`, pinned first then most-recently-updated.
 
 ---
@@ -117,7 +117,7 @@ Not persisted — produced on demand by the privacy guard: `{ category (finance|
 ## 5. Scope — the surfaces
 
 ### 5.1 Home — the dashboard / command center **[BUILT]**
-The default landing surface answers "where am I and what now?" It holds: the always-visible **inventory strip** (total; Ideas · Drafting · Ready · Published; "X of 50 plan complete"; the emphasized hero **"N ready to publish right now"** — the dopamine number); the **Publishing pipeline** (below); and a **Writing insight** card (local corpus stats + an AI teaching moment).
+The default landing surface answers "where am I and what now?" It holds: the always-visible **inventory strip** (total; Ideas · Drafting · Ready · Published; "X of 50 finished toward the habit goal" (a motivational target, never a cap); the emphasized hero **"N ready to publish right now"** — the dopamine number); the **Publishing pipeline** (below); and a **Writing insight** card (local corpus stats + an AI teaching moment).
 
 **The Publishing pipeline [BUILT]** — one smart widget that merged the old Ready-to-publish queue, the dated publishing plan, and Write-next (v3 consolidation, her call). A dated list of the **next 10 publish slots**, driven by her **cadence** (weekday chips, editable inline; default Tue/Wed/Thu for the LinkedIn push — `settings.publishDays`). Every row resolves to an action — no loose ends: a **ready** piece offers *Copy* + *Mark published* inline; a **drafting** piece offers *Finish*; an **idea** offers *Write*; an **empty slot** offers the next unused suggestion from her Source Material, and picking it **claims that slot's date**. A piece with an explicit **scheduled date** (`article.scheduledFor`, set in the editor's details panel) pins to its exact day (shown with a pin); open slots autofill from Ready (pinned first, plan order) then Drafting (recent first). Publishing clears the schedule and the plan recomputes. Deterministic and local (`publishingPlan()` in selectors). Built for the 6-month goal: **build a real inventory of writing and post on LinkedIn on a schedule** — the first 4-week cadence set (12 briefed pieces, Tue/Wed/Thu) is loaded as real articles with dates.
 
@@ -201,6 +201,7 @@ A build-time flag (`VITE_DEMO_MODE`) seeds a **fictional sample dataset** ("Maya
 - Local-only credentials: the Anthropic key, image-AI key, and all settings live in `meta` on her device and are **never** transmitted anywhere except, at her request, directly to the provider's API.
 - **Export**: JSON backup (images embedded) + a zip of per-article `.md` files with their images (referenced by relative path). **Import**: from JSON, with an overwrite warning.
 - **Local file mirror [BUILT].** During local dev (her personal use), every article with a body is mirrored automatically to a real markdown file in the project folder (`inkwell/articles/NN-slug.md`, with frontmatter) via a dev-server plugin — created/updated on save, removed when emptied or deleted. Her writing thus lives as permanent local files, never lost. The folder is gitignored (stays on her machine) and the mirror is a no-op in the static/Vercel demo build (no server).
+- **Auto-hydration [BUILT].** Browser IndexedDB is per-profile and disposable; `~/Documents/Inkwell/inkwell-backup.json` is the durable source of truth. Both shells (the desktop app and the dev server) serve it at `GET /__inkwell/bootstrap`, and a **pristine-seed** profile (untouched plan seed, empty bodies — a never-used install) imports it automatically on first load. A fresh Inkwell.app or dev profile wakes up with her full studio, never a blank plan. Non-pristine profiles are never touched; demo excluded.
 - **Two-way sync [BUILT].** The mirror also reads back: the dev plugin exposes `GET /__inkwell/list` + `/read`, and **Settings → Local files → "Scan disk for changes"** compares `articles/*.md` to the in-app articles (matching by the saved filename map, parsing frontmatter via `parseArticleMarkdown`) and lets her **pull** any externally-edited file back in — snapshotting the current body first (§5.15), never a silent overwrite. So she can edit in any editor and the app stays in sync. No-op in the demo (no endpoints).
 
 ## 7. Design direction

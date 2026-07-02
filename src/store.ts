@@ -4,6 +4,7 @@ import type { Source, Suggestion } from '@/data/sources'
 import * as db from '@/lib/storage'
 import { countWords, nowISO, uuid } from '@/lib/text'
 import { removeArticleFile, syncArticleFile } from '@/lib/localArchive'
+import { parseBackup } from '@/lib/backup'
 import { reviewCard, type Grade } from '@/lib/srs'
 import { DEMO_MODE } from '@/lib/env'
 
@@ -176,6 +177,23 @@ export const useStore = create<InkState>((set, get) => {
       applyTheme(savedTheme)
 
       set({ loaded: true, articles: articleMap, images: imageMap, settings, vocab, customSources, theme: savedTheme })
+
+      // Desktop auto-hydration: a never-used install (pristine seed) pulls her
+      // real data from the shell's /__inkwell/bootstrap backup automatically —
+      // no manual import step. No-op in the demo, in dev (non-pristine), or
+      // when the endpoint doesn't exist.
+      if (!DEMO_MODE && db.isPristineSeed(articles)) {
+        try {
+          const res = await fetch('/__inkwell/bootstrap')
+          if (res.ok) {
+            const backup = parseBackup(await res.text())
+            await get().importBackup(backup.articles, backup.images ?? [], backup.settings, backup.vocab, backup.customSources)
+            set({ view: DEMO_MODE ? 'learn' : 'home', activeId: null })
+          }
+        } catch {
+          /* no shell backup — stay on the seed */
+        }
+      }
     },
 
     setView(view) {

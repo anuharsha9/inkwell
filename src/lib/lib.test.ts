@@ -7,7 +7,8 @@ import { selfOverlap, nearDuplicates } from './plagiarism'
 import { reviewCard, isDue, type SrsState } from './srs'
 import { analyzePos } from './pos'
 import { cosineSimilarity, contentHash, prepText, shouldReuseCached } from './embeddings-core'
-import { publishingPlan } from './selectors'
+import { isPristineSeed } from './storage'
+import { publishingPlan, computeCounts } from './selectors'
 import { parseArticleMarkdown } from './markdownfile'
 import type { Article } from '@/types'
 
@@ -351,5 +352,27 @@ describe('markdown import parsing', () => {
     expect(p.status).toBe('ready')
     expect(p.tags).toEqual(['human', 'process'])
     expect(p.body).toBe('Body here.')
+  })
+})
+
+describe('pristine-seed detection (desktop auto-hydration)', () => {
+  it('is pristine only for untouched seed articles', () => {
+    const seedA = article({ id: 'seed-1', body: '' })
+    const seedB = article({ id: 'seed-2', body: '   ' })
+    expect(isPristineSeed([seedA, seedB])).toBe(true)
+    expect(isPristineSeed([seedA, article({ id: 'seed-3', body: 'she wrote something' })])).toBe(false)
+    expect(isPristineSeed([seedA, article({ id: 'li-1a', body: '' })])).toBe(false)
+    expect(isPristineSeed([])).toBe(false)
+  })
+})
+
+describe('habit-goal count', () => {
+  it('counts every finished piece, planned or not', () => {
+    const c = computeCounts([
+      article({ id: 'seed-1', number: 1, status: 'published' }),
+      article({ id: 'adhoc', number: null, status: 'ready' }),
+      article({ id: 'wip', number: null, status: 'drafting' }),
+    ])
+    expect(c.goalDone).toBe(2) // ad-hoc ready counts too — 50 is a goal, not a plan cap
   })
 })

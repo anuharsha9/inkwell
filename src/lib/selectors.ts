@@ -2,21 +2,26 @@ import type { Article, Status } from '@/types'
 import type { Filters } from '@/store'
 import { PHASE_ORDER } from './constants'
 
+// 50 is a motivational goal, not a cap — her words: "if I do 50, I'll get
+// addicted to writing regularly." Every finished piece counts, planned or not.
+export const WRITING_GOAL = 50
+
 export interface DashboardCounts {
   total: number
   byStatus: Record<Status, number>
-  planComplete: number // of 50 plan articles, ready or published
+  goalDone: number // finished pieces (ready or published — ANY article) toward the habit goal
   readyNow: number
 }
 
 export function computeCounts(articles: Article[]): DashboardCounts {
   const byStatus: Record<Status, number> = { idea: 0, drafting: 0, ready: 0, published: 0 }
-  let planComplete = 0
-  for (const a of articles) {
-    byStatus[a.status]++
-    if (a.number !== null && (a.status === 'ready' || a.status === 'published')) planComplete++
+  for (const a of articles) byStatus[a.status]++
+  return {
+    total: articles.length,
+    byStatus,
+    goalDone: byStatus.ready + byStatus.published,
+    readyNow: byStatus.ready,
   }
-  return { total: articles.length, byStatus, planComplete, readyNow: byStatus.ready }
 }
 
 // Plan-order: by number when present, ad-hoc (null number) sorted by recency.

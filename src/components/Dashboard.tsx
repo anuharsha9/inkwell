@@ -1,5 +1,5 @@
 import { useStore } from '@/store'
-import { computeCounts } from '@/lib/selectors'
+import { computeCounts, WRITING_GOAL } from '@/lib/selectors'
 import { STATUS_META } from '@/lib/constants'
 import type { Status } from '@/types'
 
@@ -8,7 +8,8 @@ const STAT_ORDER: Status[] = ['idea', 'drafting', 'ready', 'published']
 export function Dashboard() {
   const articles = useStore((s) => s.articles)
   const c = computeCounts(Object.values(articles))
-  const pct = Math.round((c.planComplete / 50) * 100)
+  // The goal bar can overflow 50 and keep counting — 50 is motivation, not a cap.
+  const pct = Math.min(100, Math.round((c.goalDone / WRITING_GOAL) * 100))
 
   return (
     <div className="dash">
@@ -32,11 +33,11 @@ export function Dashboard() {
         <div className="stat stat-progress">
           <div className="row">
             <span className="num">
-              {c.planComplete}
-              <span style={{ fontSize: 15, color: 'var(--ink-mute)' }}> / 50</span>
+              {c.goalDone}
+              <span style={{ fontSize: 15, color: 'var(--ink-mute)' }}> / {WRITING_GOAL}</span>
             </span>
             <span className="lbl" style={{ textTransform: 'none', letterSpacing: 0 }}>
-              plan articles complete · {c.total} total
+              finished toward the habit goal · {c.total} in the studio
             </span>
           </div>
           <div className="progress-track">

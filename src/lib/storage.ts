@@ -163,6 +163,15 @@ export async function saveVocab(words: SavedWord[]): Promise<void> {
   await db.put('meta', words, 'vocab')
 }
 
+// ── Pristine-seed detection (desktop auto-hydration, PRD §6) ────────────────
+// True only for a never-used install: every article is an untouched plan seed
+// (seed ids, empty bodies). The desktop shell offers a backup at
+// /__inkwell/bootstrap; a pristine store imports it automatically so a fresh
+// Inkwell.app wakes up with her real data instead of the blank plan.
+export function isPristineSeed(articles: Article[]): boolean {
+  return articles.length > 0 && articles.every((a) => a.id.startsWith('seed-') && !a.body.trim())
+}
+
 // ── Custom source material (her own, added in-app; PRD §5.8) ───────────────
 // Stored like vocab: one meta key holding the list. Shape matches data/sources'
 // Source so the Sources view renders built-in and custom identically.

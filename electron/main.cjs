@@ -122,6 +122,19 @@ const server = http.createServer(async (req, res) => {
       res.setHeader('Content-Type', 'application/json')
       return res.end(JSON.stringify({ files }))
     }
+    if (p === '/__inkwell/bootstrap' && req.method === 'GET') {
+      // A fresh (pristine-seed) app pulls her full backup on first boot, so the
+      // desktop app never starts life as a blank plan while her real writing
+      // sits in the dev build. The renderer decides whether to import.
+      try {
+        const backup = fs.readFileSync(path.join(DATA_DIR, 'inkwell-backup.json'), 'utf8')
+        res.setHeader('Content-Type', 'application/json')
+        return res.end(backup)
+      } catch {
+        res.statusCode = 404
+        return res.end('no backup')
+      }
+    }
     if (p === '/__inkwell/read' && req.method === 'GET') {
       const filename = url.searchParams.get('file')
       if (!safe(filename)) {

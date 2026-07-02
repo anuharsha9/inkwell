@@ -2,6 +2,7 @@ import { defineConfig, type PluginOption, type ViteDevServer } from 'vite'
 import react from '@vitejs/plugin-react'
 import { fileURLToPath, URL } from 'node:url'
 import fs from 'node:fs'
+import os from 'node:os'
 import path from 'node:path'
 import type { IncomingMessage, ServerResponse } from 'node:http'
 
@@ -80,6 +81,24 @@ function localArchive(): PluginOption {
           }
         }),
       )
+
+      // ── Bootstrap (auto-hydration) ── a pristine-seed profile pulls her full
+      // backup on first load. Browser IndexedDB is per-profile and disposable;
+      // ~/Documents/Inkwell/inkwell-backup.json is the durable source of truth.
+      server.middlewares.use('/__inkwell/bootstrap', (req: IncomingMessage, res: ServerResponse) => {
+        if (req.method !== 'GET') {
+          res.statusCode = 405
+          return res.end()
+        }
+        try {
+          const backup = fs.readFileSync(path.join(os.homedir(), 'Documents', 'Inkwell', 'inkwell-backup.json'), 'utf8')
+          res.setHeader('Content-Type', 'application/json')
+          res.end(backup)
+        } catch {
+          res.statusCode = 404
+          res.end('no backup')
+        }
+      })
 
       // ── Read side (two-way sync) ── list the .md files, and read one back, so
       // edits made in any external editor can flow back into the app.
