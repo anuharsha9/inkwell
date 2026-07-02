@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { useStore, type View } from '@/store'
 import { Icon, type IconName } from './Icon'
 import { readyQueue } from '@/lib/selectors'
@@ -32,17 +33,39 @@ export function NavRail() {
   const theme = useStore((s) => s.theme)
   const toggleTheme = useStore((s) => s.toggleTheme)
   const { ready, config } = useCounts()
+  // Collapsible to an icons-only rail; the choice persists across sessions.
+  const [collapsed, setCollapsed] = useState(() => localStorage.getItem('inkwell:rail-collapsed') === '1')
+  function toggleCollapsed() {
+    setCollapsed((c) => {
+      localStorage.setItem('inkwell:rail-collapsed', c ? '0' : '1')
+      return !c
+    })
+  }
 
   return (
-    <nav className="rail">
+    <nav className={`rail ${collapsed ? 'collapsed' : ''}`}>
       <div className="rail-brand">
         <div className="mark">I</div>
-        <div className="wordmark">Inkwell</div>
-        {DEMO_MODE && <span className="demo-chip">Demo</span>}
+        <span className="nav-label wordmark">Inkwell</span>
+        {DEMO_MODE && !collapsed && <span className="demo-chip">Demo</span>}
+        <button
+          className="icon-btn sm rail-collapse"
+          onClick={toggleCollapsed}
+          title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+          aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+          aria-expanded={!collapsed}
+        >
+          <Icon name="chevron" size={15} style={{ transform: collapsed ? 'rotate(0deg)' : 'rotate(180deg)' }} />
+        </button>
       </div>
 
-      <button className="btn btn-primary btn-block" style={{ marginBottom: 18 }} onClick={() => createArticle()}>
-        <Icon name="plus" size={17} strokeWidth={2} /> New Article
+      <button
+        className="btn btn-primary btn-block rail-new"
+        style={{ marginBottom: 18 }}
+        onClick={() => createArticle()}
+        title="New Article"
+      >
+        <Icon name="plus" size={17} strokeWidth={2} /> <span className="nav-label">New Article</span>
       </button>
 
       <div className="rail-nav">
@@ -54,9 +77,10 @@ export function NavRail() {
               className={`nav-item ${view === n.view ? 'active' : ''}`}
               onClick={() => setView(n.view)}
               aria-current={view === n.view ? 'page' : undefined}
+              title={collapsed ? n.label : undefined}
             >
               <Icon name={n.icon} size={19} />
-              {n.label}
+              <span className="nav-label">{n.label}</span>
               {count !== null && count > 0 && <span className="badge-count">{count}</span>}
             </button>
           )
@@ -66,9 +90,13 @@ export function NavRail() {
       <div className="rail-spacer" />
 
       <div className="rail-foot">
-        <button className="nav-item" onClick={toggleTheme}>
+        <button
+          className="nav-item"
+          onClick={toggleTheme}
+          title={collapsed ? (theme === 'light' ? 'Night' : 'Day') : undefined}
+        >
           <Icon name={theme === 'light' ? 'moon' : 'sun'} size={19} />
-          {theme === 'light' ? 'Night' : 'Day'}
+          <span className="nav-label">{theme === 'light' ? 'Night' : 'Day'}</span>
         </button>
       </div>
     </nav>

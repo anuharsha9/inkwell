@@ -3241,3 +3241,21 @@
 .plan-foot .home-link {
   font-size: 12px;
 }
+
+/* ── Writing canvas grows with the text (no inner scroll / cut-off box) ── */
+.body-input {
+  overflow: hidden;
+}
+
+/* ── Details panel collapsible on desktop too ── */
+.meta-toggle {
+  display: grid;
+}
+@media (min-width: 1001px) {
+  .editor-grid:not(.meta-open) {
+    grid-template-columns: 1fr;
+  }
+  .editor-grid:not(.meta-open) .metapanel {
+    display: none;
+  }
+}

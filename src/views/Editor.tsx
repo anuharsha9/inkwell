@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { useStore } from '@/store'
 import { Icon } from '@/components/Icon'
 import { Menu, MenuItem } from '@/components/Menu'
@@ -26,7 +26,20 @@ export function Editor() {
 
   const [pane, setPane] = useState<Pane>('write')
   const [confirmDel, setConfirmDel] = useState(false)
-  const [metaOpen, setMetaOpen] = useState(false)
+  // The details panel is collapsible everywhere: open by default on desktop,
+  // closed on narrow screens (where it's an overlay drawer). Choice persists.
+  const [metaOpen, setMetaOpenState] = useState<boolean>(() => {
+    const saved = localStorage.getItem('inkwell:meta-open')
+    if (saved !== null) return saved === '1'
+    return window.innerWidth > 1000
+  })
+  const setMetaOpen = (v: boolean | ((o: boolean) => boolean)) => {
+    setMetaOpenState((o) => {
+      const next = typeof v === 'function' ? v(o) : v
+      localStorage.setItem('inkwell:meta-open', next ? '1' : '0')
+      return next
+    })
+  }
   const [coachOpen, setCoachOpen] = useState(false)
   const [historyOpen, setHistoryOpen] = useState(false)
   const [coachTab, setCoachTab] = useState<'improve' | 'checks'>('improve')
@@ -36,6 +49,15 @@ export function Editor() {
   useEffect(() => {
     setConfirmDel(false)
   }, [activeId])
+
+  // The writing canvas grows with the text — no inner scrollbar, no dead zone
+  // below a cut-off box; the page itself scrolls.
+  useLayoutEffect(() => {
+    const ta = bodyRef.current
+    if (!ta) return
+    ta.style.height = 'auto'
+    ta.style.height = `${ta.scrollHeight}px`
+  }, [article?.body, pane, activeId])
 
   if (!activeId || !article) {
     return (

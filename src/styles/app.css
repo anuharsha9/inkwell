@@ -807,3 +807,37 @@ button.pill:hover {
     transition: none;
   }
 }
+
+/* ── Collapsible rail (icons-only) ── */
+.rail-collapse {
+  margin-left: auto;
+  color: var(--ink-mute);
+}
+.rail.collapsed {
+  padding: 22px 10px;
+}
+.app:has(.rail.collapsed) {
+  grid-template-columns: 74px 1fr;
+}
+.rail.collapsed .nav-label,
+.rail.collapsed .badge-count {
+  display: none;
+}
+.rail.collapsed .rail-brand {
+  flex-direction: column;
+  gap: 12px;
+  padding: 6px 0 18px;
+}
+.rail.collapsed .rail-collapse {
+  margin-left: 0;
+}
+.rail.collapsed .rail-new {
+  padding-left: 0;
+  padding-right: 0;
+  justify-content: center;
+}
+.rail.collapsed .nav-item {
+  justify-content: center;
+  padding-left: 0;
+  padding-right: 0;
+}
