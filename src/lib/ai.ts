@@ -1,5 +1,6 @@
 import Anthropic from '@anthropic-ai/sdk'
 import type { Article, Settings } from '@/types'
+import { DEMO_MODE } from './env'
 import type { PrivacyCategory, PrivacyFinding } from './privacy'
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -40,7 +41,35 @@ function client(s: Settings): Anthropic {
   return new Anthropic({ apiKey: effectiveKey(s), dangerouslyAllowBrowser: true })
 }
 
-const MODEL = (s: Settings) => s.aiModel.trim() || 'claude-opus-4-8'
+// Personal build defaults to Claude Fable 5 (the most capable model — her
+// call: "best possible AI" for her own writing); the demo's BYO-key default
+// stays Opus 4.8 so visitors aren't defaulted onto the priciest tier.
+export const DEFAULT_MODEL = DEMO_MODE ? 'claude-opus-4-8' : 'claude-fable-5'
+
+const MODEL = (s: Settings) => s.aiModel.trim() || DEFAULT_MODEL
+
+const isFable = (m: string) => m.startsWith('claude-fable') || m.startsWith('claude-mythos')
+
+// One seam for every API call. Fable 5's safety layer can decline a benign
+// request (stop_reason "refusal"); the server-side fallback transparently
+// re-serves it with Opus 4.8 in the same call — declined-then-rescued requests
+// are repriced automatically, so she never sees a dead click.
+async function createMsg(
+  s: Settings,
+  params: Omit<Anthropic.MessageCreateParamsNonStreaming, 'model'>,
+): Promise<Anthropic.Message> {
+  const model = MODEL(s)
+  const c = client(s)
+  if (isFable(model)) {
+    return (await c.beta.messages.create({
+      model,
+      ...params,
+      betas: ['server-side-fallback-2026-06-01'],
+      fallbacks: [{ model: 'claude-opus-4-8' }],
+    } as never)) as unknown as Anthropic.Message
+  }
+  return c.messages.create({ model, ...params })
+}
 
 // The persona every call shares: Inkwell's in-house editor who knows HER voice.
 function systemPrompt(s: Settings): string {
@@ -58,8 +87,7 @@ function systemPrompt(s: Settings): string {
 }
 
 async function complete(s: Settings, system: string, user: string, maxTokens = 2048): Promise<string> {
-  const res = await client(s).messages.create({
-    model: MODEL(s),
+  const res = await createMsg(s, {
     max_tokens: maxTokens,
     system,
     messages: [{ role: 'user', content: user }],
@@ -205,8 +233,7 @@ Keep it under 350 words, markdown, in my coach's voice. Ground every insight in 
 
 --- MY DRAFT ---
 ${body}`
-  const res = await client(s).messages.create({
-    model: MODEL(s),
+  const res = await createMsg(s, {
     max_tokens: 2600,
     system: systemPrompt(s),
     tools: [{ type: 'web_search_20260209', name: 'web_search', max_uses: 4 }] as Anthropic.Messages.ToolUnion[],
@@ -277,8 +304,7 @@ export async function originalityScan(article: Article, s: Settings): Promise<st
   const body = article.body.trim()
   if (!body) return ''
   const user = `Check this draft for originality before I publish. Search the web for any distinctive sentences or claims that closely match existing published material (so I don't accidentally echo someone else's phrasing or facts). For each potential match: quote the passage from my draft, name the likely source with a link, and say how close it is. If a factual claim can't be verified, flag it. If it all reads as original and sound, say so plainly. Under 300 words, markdown. Do not invent matches — only report what you actually find.\n\n--- MY DRAFT ---\n${body}`
-  const res = await client(s).messages.create({
-    model: MODEL(s),
+  const res = await createMsg(s, {
     max_tokens: 2600,
     system:
       'You are an originality and fact reviewer helping a writer avoid accidental plagiarism and unverifiable claims before publishing. You are precise, cite real sources, and never fabricate matches.',

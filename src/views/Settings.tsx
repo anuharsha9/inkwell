@@ -151,7 +151,7 @@ export function Settings() {
           />
           <Field
             label="Model"
-            placeholder="claude-opus-4-8"
+            placeholder={DEMO_MODE ? 'claude-opus-4-8' : 'claude-fable-5'}
             value={settings.aiModel}
             onChange={(v) => updateSettings({ aiModel: v })}
           />
