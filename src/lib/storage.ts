@@ -159,6 +159,19 @@ export async function saveVocab(words: SavedWord[]): Promise<void> {
   await db.put('meta', words, 'vocab')
 }
 
+// ── Custom source material (her own, added in-app; PRD §5.8) ───────────────
+// Stored like vocab: one meta key holding the list. Shape matches data/sources'
+// Source so the Sources view renders built-in and custom identically.
+export async function loadCustomSources<T>(): Promise<T[]> {
+  const db = await getDB()
+  return ((await db.get('meta', 'customSources')) as T[] | undefined) ?? []
+}
+
+export async function saveCustomSources<T>(sources: T[]): Promise<void> {
+  const db = await getDB()
+  await db.put('meta', sources, 'customSources')
+}
+
 // ── Version history (per-article snapshots, PRD §6 — never lose work) ──────
 export interface Version {
   id: string // `${articleId}:${ts}`

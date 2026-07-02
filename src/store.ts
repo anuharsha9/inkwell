@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import type { Article, InkImage, Phase, Platform, Settings, Status, Tag } from '@/types'
+import type { Source, Suggestion } from '@/data/sources'
 import * as db from '@/lib/storage'
 import { countWords, nowISO, uuid } from '@/lib/text'
 import { removeArticleFile, syncArticleFile } from '@/lib/localArchive'
@@ -34,6 +35,7 @@ interface InkState {
   images: Record<string, InkImage>
   settings: Settings
   vocab: db.SavedWord[]
+  customSources: Source[]
   theme: Theme
 
   view: View
@@ -81,6 +83,11 @@ interface InkState {
   addVocab: (word: Omit<db.SavedWord, 'due' | 'interval' | 'ease' | 'reps' | 'lapses'>) => void
   removeVocab: (word: string) => void
   reviewVocab: (word: string, grade: Grade) => void
+
+  // custom source material (added in-app)
+  addSource: (source: Omit<Source, 'id' | 'suggestions'>) => void
+  removeSource: (id: string) => void
+  addSourceSuggestion: (sourceId: string, sg: Suggestion) => void
 
   // backup
   importBackup: (articles: Article[], images: InkImage[], settings: Settings) => Promise<void>
@@ -136,6 +143,7 @@ export const useStore = create<InkState>((set, get) => {
     images: {},
     settings: db.DEFAULT_SETTINGS,
     vocab: [],
+    customSources: [],
     theme: 'light',
 
     view: DEMO_MODE ? 'learn' : 'home', // demo visitors land on the showcase first
@@ -146,11 +154,12 @@ export const useStore = create<InkState>((set, get) => {
 
     async init() {
       await db.ensureSeeded()
-      const [articles, images, settings, vocab] = await Promise.all([
+      const [articles, images, settings, vocab, customSources] = await Promise.all([
         db.loadArticles(),
         db.loadAllImages(),
         db.loadSettings(),
         db.loadVocab(),
+        db.loadCustomSources<Source>(),
       ])
       const articleMap: Record<string, Article> = {}
       for (const a of articles) articleMap[a.id] = a
@@ -160,7 +169,7 @@ export const useStore = create<InkState>((set, get) => {
       const savedTheme = (localStorage.getItem('inkwell:theme') as Theme | null) ?? prefersDark()
       applyTheme(savedTheme)
 
-      set({ loaded: true, articles: articleMap, images: imageMap, settings, vocab, theme: savedTheme })
+      set({ loaded: true, articles: articleMap, images: imageMap, settings, vocab, customSources, theme: savedTheme })
     },
 
     setView(view) {
@@ -387,6 +396,30 @@ export const useStore = create<InkState>((set, get) => {
       const next = get().vocab.map((w) => (w.word === word ? { ...w, ...reviewCard(w, grade) } : w))
       set({ vocab: next })
       void db.saveVocab(next)
+    },
+
+    addSource(source) {
+      const full: Source = { ...source, id: `custom-${uuid()}`, suggestions: [] }
+      const next = [full, ...get().customSources]
+      set({ customSources: next })
+      void db.saveCustomSources(next)
+    },
+
+    removeSource(id) {
+      const next = get().customSources.filter((s) => s.id !== id)
+      set({ customSources: next })
+      void db.saveCustomSources(next)
+    },
+
+    addSourceSuggestion(sourceId, sg) {
+      const next = get().customSources.map((s) => {
+        if (s.id !== sourceId) return s
+        // No exact-duplicate angles (also guards a double-submit).
+        if (s.suggestions.some((x) => x.title.trim().toLowerCase() === sg.title.trim().toLowerCase())) return s
+        return { ...s, suggestions: [...s.suggestions, sg] }
+      })
+      set({ customSources: next })
+      void db.saveCustomSources(next)
     },
 
     async importBackup(articles, images, settings) {
