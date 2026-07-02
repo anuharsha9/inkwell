@@ -1,7 +1,11 @@
+import { useRef } from 'react'
 import { useStore, type GroupBy } from '@/store'
 import { groupArticles } from '@/lib/selectors'
 import { PHASE_META } from '@/lib/constants'
-import type { Phase } from '@/types'
+import { parseArticleMarkdown } from '@/lib/markdownfile'
+import { countWords } from '@/lib/text'
+import { useToast } from '@/components/ui'
+import type { Phase, Status, Tag } from '@/types'
 import { ArticleCard } from '@/components/ArticleCard'
 import { FilterBar } from '@/components/FilterBar'
 import { Icon } from '@/components/Icon'
@@ -14,15 +18,47 @@ const GROUP_OPTIONS: { value: GroupBy; label: string }[] = [
 
 const PHASE_KEYS = new Set(['phase-1', 'phase-2', 'phase-3', 'phase-4', 'phase-5', 'unfiled'])
 
+const VALID_TAGS = new Set<Tag>(['existing', 'live', 'process', 'human', 'technical'])
+const VALID_STATUS = new Set<Status>(['idea', 'drafting', 'ready', 'published'])
+
 export function Archive() {
   const articles = useStore((s) => s.articles)
   const groupBy = useStore((s) => s.groupBy)
   const setGroupBy = useStore((s) => s.setGroupBy)
   const filters = useStore((s) => s.filters)
   const createArticle = useStore((s) => s.createArticle)
+  const createIdeaFrom = useStore((s) => s.createIdeaFrom)
+  const push = useToast((s) => s.push)
+  const importRef = useRef<HTMLInputElement>(null)
 
   const groups = groupArticles(Object.values(articles), groupBy, filters)
   const totalShown = groups.reduce((n, g) => n + g.articles.length, 0)
+
+  // Absorb .md files as drafts — frontmatter honored when present; otherwise
+  // title from the first heading (or the filename) and the content as the body.
+  async function importFiles(files: FileList | null) {
+    if (!files?.length) return
+    let added = 0
+    for (const file of Array.from(files)) {
+      const text = await file.text()
+      const parsed = parseArticleMarkdown(text)
+      const title = parsed.title || file.name.replace(/\.(md|markdown|txt)$/i, '').replace(/[-_]+/g, ' ')
+      const body = parsed.body
+      if (!title.trim() && !body.trim()) continue
+      createIdeaFrom({
+        title,
+        hook: parsed.hook,
+        body,
+        status: parsed.status && VALID_STATUS.has(parsed.status as Status) ? (parsed.status as Status) : body.trim() ? 'drafting' : 'idea',
+        tags: (parsed.tags ?? []).filter((t): t is Tag => VALID_TAGS.has(t as Tag)),
+        wordCount: countWords(body),
+        notes: `Imported from ${file.name}`,
+      })
+      added++
+    }
+    push(added ? `Imported ${added} draft${added === 1 ? '' : 's'}` : 'Nothing importable in those files')
+    if (importRef.current) importRef.current.value = ''
+  }
 
   return (
     <>
@@ -39,6 +75,17 @@ export function Archive() {
               </button>
             ))}
           </div>
+          <input
+            ref={importRef}
+            type="file"
+            accept=".md,.markdown,.txt"
+            multiple
+            hidden
+            onChange={(e) => void importFiles(e.target.files)}
+          />
+          <button className="btn btn-soft" onClick={() => importRef.current?.click()} title="Import .md files as drafts">
+            <Icon name="upload" size={16} /> Import .md
+          </button>
           <button className="btn btn-primary" onClick={() => createArticle()}>
             <Icon name="plus" size={16} strokeWidth={2} /> New
           </button>

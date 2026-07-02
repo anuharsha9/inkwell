@@ -281,7 +281,10 @@ export const useStore = create<InkState>((set, get) => {
       const prev = get().articles[id]
       if (!prev) return
       const patch: Partial<Article> = { status }
-      if (status === 'published' && !prev.publishedAt) patch.publishedAt = nowISO()
+      if (status === 'published') {
+        if (!prev.publishedAt) patch.publishedAt = nowISO()
+        patch.scheduledFor = null // its plan slot is done
+      }
       // Alt text required before "ready" — but never block her: backfill the
       // cover's alt from the title if she left it empty (PRD §5.5).
       if ((status === 'ready' || status === 'published') && prev.coverImageId) {
@@ -315,7 +318,7 @@ export const useStore = create<InkState>((set, get) => {
     markPublished(id, platforms) {
       const prev = get().articles[id]
       if (!prev) return
-      const patch: Partial<Article> = { status: 'published', publishedAt: prev.publishedAt ?? nowISO() }
+      const patch: Partial<Article> = { status: 'published', publishedAt: prev.publishedAt ?? nowISO(), scheduledFor: null }
       if (platforms) patch.platforms = platforms
       get().updateArticle(id, patch, { immediate: true })
     },

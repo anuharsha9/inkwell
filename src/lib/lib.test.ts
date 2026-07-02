@@ -7,6 +7,8 @@ import { selfOverlap, nearDuplicates } from './plagiarism'
 import { reviewCard, isDue, type SrsState } from './srs'
 import { analyzePos } from './pos'
 import { cosineSimilarity, contentHash, prepText, shouldReuseCached } from './embeddings-core'
+import { publishingPlan } from './selectors'
+import { parseArticleMarkdown } from './markdownfile'
 import type { Article } from '@/types'
 
 function article(over: Partial<Article> = {}): Article {
@@ -296,5 +298,58 @@ describe('personalized readiness baseline', () => {
   it('returns no baseline with too little published work', () => {
     expect(publishedBaseline([pub('p1', longBody)])).toBeNull()
     expect(readiness(article({ body: longBody }), false, null).personalized).toBe(false)
+  })
+})
+
+describe('publishing plan', () => {
+  const now = new Date('2026-07-01T10:00:00') // a Wednesday
+  it('dates slots by cadence and fills ready-first', () => {
+    const arts = [
+      article({ id: 'r1', status: 'ready', number: 5, body: 'x' }),
+      article({ id: 'r2', status: 'ready', number: 2, pinned: true, body: 'x' }),
+      article({ id: 'd1', status: 'drafting', updatedAt: '2026-06-30T00:00:00.000Z', body: 'x' }),
+    ]
+    const plan = publishingPlan(arts, [2, 4], 4, now) // Tue+Thu
+    expect(plan.map((s) => s.date)).toEqual(['2026-07-02', '2026-07-07', '2026-07-09', '2026-07-14'])
+    expect(plan[0].article?.id).toBe('r2') // pinned ready first
+    expect(plan[1].article?.id).toBe('r1')
+    expect(plan[2].article?.id).toBe('d1') // then drafting
+    expect(plan[3].assigned).toBe('open')
+  })
+  it('scheduled pieces claim their exact date, even off-cadence', () => {
+    const arts = [
+      article({ id: 's1', status: 'drafting', scheduledFor: '2026-07-08', body: 'x' }),
+      article({ id: 'r1', status: 'ready', body: 'x' }),
+    ]
+    const plan = publishingPlan(arts, [2, 4], 4, now)
+    const wed = plan.find((s) => s.date === '2026-07-08')
+    expect(wed?.article?.id).toBe('s1')
+    expect(wed?.assigned).toBe('scheduled')
+    expect(plan[0].article?.id).toBe('r1') // autofill unaffected
+  })
+  it('ignores past-dated and published schedules', () => {
+    const arts = [
+      article({ id: 'old', status: 'ready', scheduledFor: '2026-06-01', body: 'x' }),
+      article({ id: 'pub', status: 'published', scheduledFor: '2026-07-07', body: 'x' }),
+    ]
+    const plan = publishingPlan(arts, [2], 2, now)
+    expect(plan.every((s) => s.article?.id !== 'pub')).toBe(true)
+    expect(plan[0].article?.id).toBe('old') // past date dropped → autofills as ready
+  })
+})
+
+describe('markdown import parsing', () => {
+  it('parses arbitrary md: H1 title + body, no frontmatter', () => {
+    const p = parseArticleMarkdown('# My Title\n\nFirst para.\n\nSecond para.')
+    expect(p.title).toBe('My Title')
+    expect(p.body).toContain('First para.')
+    expect(p.body).not.toContain('# My Title')
+  })
+  it('honors frontmatter when present', () => {
+    const p = parseArticleMarkdown('---\ntitle: "From FM"\nstatus: ready\ntags: [human, process]\n---\n\n# From FM\n\nBody here.')
+    expect(p.title).toBe('From FM')
+    expect(p.status).toBe('ready')
+    expect(p.tags).toEqual(['human', 'process'])
+    expect(p.body).toBe('Body here.')
   })
 })

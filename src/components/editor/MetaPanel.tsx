@@ -89,6 +89,29 @@ export function MetaPanel({ article, onInsert }: { article: Article; onInsert: (
         </div>
       </section>
 
+      {/* Publish date — claims a slot in the Home publishing plan */}
+      {article.status !== 'published' && (
+        <section className="meta-section">
+          <div className="meta-label">Scheduled publish date</div>
+          <div className="meta-schedule">
+            <input
+              type="date"
+              className="meta-date"
+              value={article.scheduledFor ?? ''}
+              onChange={(e) => updateArticle(article.id, { scheduledFor: e.target.value || null }, { immediate: true })}
+            />
+            {article.scheduledFor && (
+              <button
+                className="mini-btn"
+                onClick={() => updateArticle(article.id, { scheduledFor: null }, { immediate: true })}
+              >
+                Clear
+              </button>
+            )}
+          </div>
+        </section>
+      )}
+
       {/* Pinned */}
       <section className="meta-section">
         <button className={`toggle-row ${article.pinned ? 'on' : ''}`} onClick={() => togglePinned(article.id)}>

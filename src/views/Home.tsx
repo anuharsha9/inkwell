@@ -1,27 +1,23 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useStore } from '@/store'
-import { readyQueue } from '@/lib/selectors'
+import { publishingPlan, readyQueue } from '@/lib/selectors'
+import { STATUS_META } from '@/lib/constants'
 import { Dashboard } from '@/components/Dashboard'
-import { ReadyCards } from '@/components/ReadyCards'
 import { Icon } from '@/components/Icon'
 import { Markdown } from '@/components/editor/Markdown'
 import { useToast } from '@/components/ui'
+import { useCopyArticle } from '@/components/PublishActions'
 import { corpusInsight, isAIConfigured, isAIDisabledByGovernance } from '@/lib/ai'
 import { analyze } from '@/lib/textmetrics'
 import { activeSources } from '@/data/sources'
 
 export function Home() {
-  const articles = useStore((s) => s.articles)
-  const setView = useStore((s) => s.setView)
-  const list = Object.values(articles)
-  const queue = readyQueue(list)
-
   return (
     <>
       <div className="page-head">
         <div>
           <h1 className="page-title">Home</h1>
-          <div className="page-sub">Your studio at a glance — what's ready, what to write, where you're growing.</div>
+          <div className="page-sub">Your studio at a glance — what ships next, what to write, where you're growing.</div>
         </div>
         <button className="btn btn-primary" onClick={() => useStore.getState().createArticle()}>
           <Icon name="plus" size={16} strokeWidth={2} /> New
@@ -33,30 +29,150 @@ export function Home() {
       <Momentum />
 
       <div className="home-grid">
-        {/* Ready to publish — the command-center centerpiece */}
-        <section className="home-section span-2">
-          <div className="home-section-head">
-            <h2 className="home-section-title">
-              <Icon name="queue" size={18} /> Ready to publish
-            </h2>
-            <span className="home-count">{queue.length}</span>
-          </div>
-          {queue.length > 0 ? (
-            <ReadyCards queue={queue} />
-          ) : (
-            <div className="home-empty">
-              <p>Nothing's marked ready yet. Draft something, flip it to ready, and it'll wait here for the urge to post.</p>
-              <button className="btn btn-soft" onClick={() => setView('archive')}>
-                <Icon name="archive" size={15} /> Go to the Archive
-              </button>
-            </div>
-          )}
-        </section>
-
+        {/* The pipeline — ready-to-publish + the dated plan + write-next, as one */}
+        <Pipeline />
         <InsightCard />
-        <SuggestionsCard />
       </div>
     </>
+  )
+}
+
+// ── The pipeline — "what ships next, on what day, and what to write" ────────
+// One widget, three jobs: each dated slot resolves to an action. A ready piece
+// offers copy/publish; a draft offers "finish"; an idea offers "write"; an
+// empty slot offers the next best thing to write from her source material —
+// and adding it claims that slot's date. No loose ends.
+const DAY_LETTERS = ['S', 'M', 'T', 'W', 'T', 'F', 'S']
+
+function Pipeline() {
+  const articles = useStore((s) => s.articles)
+  const publishDays = useStore((s) => s.settings.publishDays)
+  const updateSettings = useStore((s) => s.updateSettings)
+  const openEditor = useStore((s) => s.openEditor)
+  const setView = useStore((s) => s.setView)
+  const createIdeaFrom = useStore((s) => s.createIdeaFrom)
+  const markPublished = useStore((s) => s.markPublished)
+  const { copyFull } = useCopyArticle()
+  const push = useToast((s) => s.push)
+
+  const list = Object.values(articles)
+  const readyCount = readyQueue(list).length
+  const plan = useMemo(() => publishingPlan(list, publishDays, 10), [list, publishDays])
+
+  // Unused source suggestions queue up for the open slots, in order.
+  const nextUp = useMemo(() => {
+    const existing = new Set(list.map((a) => a.title.trim().toLowerCase()))
+    return activeSources()
+      .flatMap((src) => src.suggestions.map((sg) => ({ src, sg })))
+      .filter(({ sg }) => !existing.has(sg.title.trim().toLowerCase()))
+  }, [list])
+
+  function toggleDay(d: number) {
+    const next = publishDays.includes(d) ? publishDays.filter((x) => x !== d) : [...publishDays, d].sort()
+    if (next.length) updateSettings({ publishDays: next }) // never allow an empty cadence
+  }
+
+  // Adding from an open slot claims that slot's date — the plan stays whole.
+  function writeInto(date: string, sg: { title: string; hook: string; tags: import('@/types').Tag[] }, srcName: string) {
+    createIdeaFrom(
+      { title: sg.title, hook: sg.hook, tags: sg.tags, notes: `Source: ${srcName}`, scheduledFor: date },
+      { open: true },
+    )
+    push(`Scheduled “${sg.title}”`)
+  }
+
+  let openIdx = -1
+  return (
+    <section className="home-section span-2">
+      <div className="home-section-head">
+        <h2 className="home-section-title">
+          <Icon name="calendar" size={18} /> Publishing pipeline
+        </h2>
+        <span className="home-count">{readyCount} ready</span>
+        <div className="plan-days" title="Your cadence — the weekdays you post">
+          {DAY_LETTERS.map((l, d) => (
+            <button
+              key={d}
+              className={`plan-day ${publishDays.includes(d) ? 'on' : ''}`}
+              onClick={() => toggleDay(d)}
+              aria-label={`Post on ${['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][d]}`}
+              aria-pressed={publishDays.includes(d)}
+            >
+              {l}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="plan-rows">
+        {plan.map((slot) => {
+          const d = new Date(`${slot.date}T12:00:00`)
+          const label = d.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })
+          const a = slot.article
+          if (a) {
+            return (
+              <div className={`plan-row ${slot.assigned}`} key={slot.date}>
+                <span className="plan-date">{label}</span>
+                <button className="plan-title" onClick={() => openEditor(a.id)}>
+                  {a.title || 'Untitled'}
+                </button>
+                <span className="plan-meta">
+                  {slot.assigned === 'scheduled' && <Icon name="pin" size={11} strokeWidth={2} />}
+                  <span className={`plan-status s-${a.status}`}>{STATUS_META[a.status].label}</span>
+                </span>
+                <span className="plan-actions">
+                  {a.status === 'ready' ? (
+                    <>
+                      <button className="mini-btn add" onClick={() => void copyFull(a)} title="Copy the article — paste & post">
+                        <Icon name="copy" size={12} /> Copy
+                      </button>
+                      <button className="mini-btn" onClick={() => markPublished(a.id)} title="Mark as published">
+                        <Icon name="check" size={12} strokeWidth={2} /> Published
+                      </button>
+                    </>
+                  ) : (
+                    <button className="mini-btn" onClick={() => openEditor(a.id)}>
+                      <Icon name="pen" size={12} /> {a.status === 'drafting' ? 'Finish' : 'Write'}
+                    </button>
+                  )}
+                </span>
+              </div>
+            )
+          }
+          // Open slot — offer the next best thing to write, and let it claim the date.
+          openIdx++
+          const s = nextUp[openIdx]
+          return (
+            <div className="plan-row open" key={slot.date}>
+              <span className="plan-date">{label}</span>
+              {s ? (
+                <>
+                  <span className="plan-next">
+                    <span className="plan-next-label">write next</span>
+                    <span className="plan-next-title">{s.sg.title}</span>
+                    <span className="plan-next-from">from {s.src.name}</span>
+                  </span>
+                  <span className="plan-actions">
+                    <button className="mini-btn add" onClick={() => writeInto(slot.date, s.sg, s.src.name)}>
+                      <Icon name="plus" size={12} strokeWidth={2} /> Write it
+                    </button>
+                  </span>
+                </>
+              ) : (
+                <span className="plan-open">open slot</span>
+              )}
+            </div>
+          )
+        })}
+      </div>
+      <p className="plan-foot">
+        Pinned-date pieces keep their day; open slots fill from Ready, then Drafting, then your source material —
+        picking one schedules it.{' '}
+        <button className="home-link" onClick={() => setView('sources')}>
+          All sources
+        </button>
+      </p>
+    </section>
   )
 }
 
@@ -202,54 +318,5 @@ function Momentum() {
         Your craft <Icon name="chevron" size={14} />
       </span>
     </button>
-  )
-}
-
-// ── Suggested articles (from her real source material) ─────────────────────
-function SuggestionsCard() {
-  const articles = useStore((s) => s.articles)
-  const createIdeaFrom = useStore((s) => s.createIdeaFrom)
-  const setView = useStore((s) => s.setView)
-  const push = useToast((s) => s.push)
-
-  const existing = new Set(Object.values(articles).map((a) => a.title.trim().toLowerCase()))
-  const suggestions = activeSources().flatMap((src) => src.suggestions.map((sg) => ({ src, sg })))
-    .filter(({ sg }) => !existing.has(sg.title.trim().toLowerCase()))
-    .slice(0, 3)
-
-  return (
-    <section className="home-section">
-      <div className="home-section-head">
-        <h2 className="home-section-title">
-          <Icon name="sources" size={17} /> Write next
-        </h2>
-        <button className="home-link" onClick={() => setView('sources')}>
-          All sources
-        </button>
-      </div>
-      {suggestions.length === 0 ? (
-        <p className="home-insight-hint">You've pulled in every suggested angle. Nicely done.</p>
-      ) : (
-        <div className="home-suggestions">
-          {suggestions.map(({ src, sg }) => (
-            <div className="home-sugg" key={sg.title}>
-              <div className="home-sugg-body">
-                <h4 className="home-sugg-title">{sg.title}</h4>
-                <p className="home-sugg-from">from {src.name}</p>
-              </div>
-              <button
-                className="mini-btn add"
-                onClick={() => {
-                  createIdeaFrom({ title: sg.title, hook: sg.hook, tags: sg.tags, notes: `Source: ${src.name}` })
-                  push(`Added “${sg.title}”`)
-                }}
-              >
-                <Icon name="plus" size={13} strokeWidth={2} /> Add
-              </button>
-            </div>
-          ))}
-        </div>
-      )}
-    </section>
   )
 }

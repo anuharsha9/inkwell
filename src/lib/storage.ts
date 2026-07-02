@@ -45,6 +45,8 @@ export const DEFAULT_SETTINGS: Settings = {
   craftInsight: '',
   craftInsightAt: '',
   privacyTerms: [],
+  publishDays: [2, 3, 4], // Tue/Wed/Thu — her LinkedIn cadence (Wednesday = centerpiece)
+
   bookTitle: '',
   bookArticleIds: [],
 }

@@ -51,6 +51,9 @@ export interface Article {
   publishedAt: string | null // ISO
   pinned: boolean
   notes: string // private scratch notes, not part of the article body
+  // Optional publish date (ISO yyyy-mm-dd) — claims a slot in the dashboard's
+  // publishing plan. Cleared automatically when the piece is marked published.
+  scheduledFor?: string | null
   coverImageId: string | null // → InkImage.id (images stored separately, see PRD §5.5 storage)
   imageIds: string[] // additional inline images used in the body
   configTalk: boolean // does this article feed the Figma Config talk?
@@ -91,6 +94,9 @@ export interface Settings {
   // local privacy guard flags exactly — keeps the things she most wants private
   // from ever slipping into a published piece.
   privacyTerms: string[]
+  // Publishing cadence — the weekdays she posts (0=Sun … 6=Sat). Drives the
+  // dashboard's dated publishing plan ("next 10 things, and on what day").
+  publishDays: number[]
   // Book mode — compile a book from selected articles, in chosen order.
   bookTitle: string
   bookArticleIds: string[]

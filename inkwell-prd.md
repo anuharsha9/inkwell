@@ -67,7 +67,8 @@ One user. No auth, no accounts, no multi-user. A personal tool that lives in her
 Article {
   id, number|null, title, hook, body (markdown), phase, tags[], status,
   platforms[], wordCount, createdAt, updatedAt, publishedAt|null,
-  pinned, notes, coverImageId|null, imageIds[], configTalk, configNote
+  pinned, notes, coverImageId|null, imageIds[], configTalk, configNote,
+  scheduledFor|null   // optional publish date — claims a Publishing-pipeline slot (§5.1)
 }
 ```
 Enums: `Phase` (phase-1…5, unfiled) · `Status` (idea, drafting, ready, published) · `Tag` (existing, live, process, human, technical) · `Platform` (substack, linkedin, medium).
@@ -98,7 +99,8 @@ Settings {
   voiceProfile, voiceProfileUpdatedAt,
   craftInsight, craftInsightAt, // persisted narrative "read" shown on Writing Craft (§11)
   privacyTerms[],               // her own sensitive strings (employers/products/people) flagged locally (§5.11)
-  semanticEnabled               // opt-in on-device embeddings (§5.16); default false, demo-disabled
+  semanticEnabled,              // opt-in on-device embeddings (§5.16); default false, demo-disabled
+  publishDays[]                 // cadence weekdays (0–6) driving the Publishing pipeline (§5.1); default Tue/Wed/Thu
 }
 ```
 
@@ -115,10 +117,12 @@ Not persisted — produced on demand by the privacy guard: `{ category (finance|
 ## 5. Scope — the surfaces
 
 ### 5.1 Home — the dashboard / command center **[BUILT]**
-The default landing surface answers "where am I and what now?" It holds: the always-visible **inventory strip** (total; Ideas · Drafting · Ready · Published; "X of 50 plan complete"; the emphasized hero **"N ready to publish right now"** — the dopamine number); the **Ready to publish** queue front-and-centre (copy-out · Publish-to deep links · mark-published inline); a **Writing insight** card (an AI teaching moment drawn from her recent pages); and **Write next** (suggested articles from her real Source Material, one-click Add). The standalone Publish Queue from v1 is folded into Home.
+The default landing surface answers "where am I and what now?" It holds: the always-visible **inventory strip** (total; Ideas · Drafting · Ready · Published; "X of 50 plan complete"; the emphasized hero **"N ready to publish right now"** — the dopamine number); the **Publishing pipeline** (below); and a **Writing insight** card (local corpus stats + an AI teaching moment).
+
+**The Publishing pipeline [BUILT]** — one smart widget that merged the old Ready-to-publish queue, the dated publishing plan, and Write-next (v3 consolidation, her call). A dated list of the **next 10 publish slots**, driven by her **cadence** (weekday chips, editable inline; default Tue/Wed/Thu for the LinkedIn push — `settings.publishDays`). Every row resolves to an action — no loose ends: a **ready** piece offers *Copy* + *Mark published* inline; a **drafting** piece offers *Finish*; an **idea** offers *Write*; an **empty slot** offers the next unused suggestion from her Source Material, and picking it **claims that slot's date**. A piece with an explicit **scheduled date** (`article.scheduledFor`, set in the editor's details panel) pins to its exact day (shown with a pin); open slots autofill from Ready (pinned first, plan order) then Drafting (recent first). Publishing clears the schedule and the plan recomputes. Deterministic and local (`publishingPlan()` in selectors). Built for the 6-month goal: **build a real inventory of writing and post on LinkedIn on a schedule** — the first 4-week cadence set (12 briefed pieces, Tue/Wed/Thu) is loaded as real articles with dates.
 
 ### 5.2 View A — The Archive (pure inventory) **[BUILT]**
-The complete list of **all** articles, every status, and nothing else — no dashboard, no extras. Grouped by **Phase** by default (I→V then Unfiled, in plan-number order), with toggles to **Status** and **Recent**. Each card: number badge, title, hook (truncated), status pill, tags, word count, platform dots, pinned indicator, cover thumbnail, Config-talk flag. Multi-select filters (status/phase/tag/platform) + full-text search across title+hook+body. Click → editor. **Inline status change** via the pill (no editor needed). **+ New Article** instantly creates an Unfiled idea and opens it (works on mobile).
+The complete list of **all** articles, every status, and nothing else — no dashboard, no extras. Grouped by **Phase** by default (I→V then Unfiled, in plan-number order), with toggles to **Status** and **Recent**. Each card: number badge, title, hook (truncated), status pill, tags, word count, platform dots, pinned indicator, cover thumbnail, Config-talk flag. Multi-select filters (status/phase/tag/platform) + full-text search across title+hook+body. Click → editor. **Inline status change** via the pill (no editor needed). **+ New Article** instantly creates an Unfiled idea and opens it (works on mobile). **Import .md [BUILT]:** absorb markdown files as drafts — frontmatter honored when present; otherwise title from the first heading (or filename) and the content as the body; bodied files land as `drafting`, with the source filename in notes.
 
 ### 5.3 View B — The Editor **[BUILT]**
 Calm, focused writing surface. Large title field, italic hook field, generous plain-markdown body. Live word count + reading time. **Write / Preview / Split** markdown rendering. **Autosave** (debounced ~500ms) with a quiet "Saved" indicator — no manual save, no lose-your-work path. Metadata rail: phase, status chips, tags, platforms, pin, Config toggle + note, image panel, private notes (collapses to a drawer on smaller screens). **Copy article** (full, clean markdown) + **Copy body only**; **Publish to…** deep links; **Mark as published**; delete (confirm). Plus two AI-native affordances in the top bar: the **privacy shield** (§5.11) and the **Coach** button (§5.9).

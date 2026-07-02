@@ -86,6 +86,68 @@ export function readyQueue(articles: Article[]): Article[] {
     })
 }
 
+// ── Publishing plan — "the next N things I'll publish, and on what day" ────
+// Slots come from her cadence (publishDays weekdays) plus any explicitly
+// scheduled dates. An article with scheduledFor claims its exact date; open
+// slots autofill from inventory (ready first — pinned, then plan order — then
+// drafting by recency). Deterministic and local; recomputes as things publish.
+export interface PlanSlot {
+  date: string // yyyy-mm-dd
+  article: Article | null
+  assigned: 'scheduled' | 'auto' | 'open'
+}
+
+const dayKey = (d: Date) => {
+  const y = d.getFullYear()
+  const m = String(d.getMonth() + 1).padStart(2, '0')
+  const dd = String(d.getDate()).padStart(2, '0')
+  return `${y}-${m}-${dd}`
+}
+
+export function publishingPlan(
+  articles: Article[],
+  publishDays: number[],
+  count = 10,
+  now: Date = new Date(),
+): PlanSlot[] {
+  const days = publishDays.length ? publishDays : [2, 3, 4]
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+
+  // Explicitly scheduled, unpublished pieces claim their dates (even off-cadence).
+  const scheduled = new Map<string, Article>()
+  for (const a of articles) {
+    if (a.status === 'published' || !a.scheduledFor) continue
+    const key = a.scheduledFor.slice(0, 10)
+    if (key >= dayKey(today) && !scheduled.has(key)) scheduled.set(key, a)
+  }
+
+  // Slot dates = union of the next cadence days and all claimed dates, sorted.
+  const dates = new Set<string>(scheduled.keys())
+  for (let i = 0; dates.size < count * 3 && i < 120; i++) {
+    const d = new Date(today)
+    d.setDate(today.getDate() + i)
+    if (days.includes(d.getDay())) dates.add(dayKey(d))
+  }
+  const slotDates = [...dates].sort().slice(0, count)
+
+  // Autofill queue: ready (pinned first, then plan order) → drafting (recent first).
+  const claimed = new Set([...scheduled.values()].map((a) => a.id))
+  const ready = articles
+    .filter((a) => a.status === 'ready' && !claimed.has(a.id))
+    .sort((a, b) => (a.pinned !== b.pinned ? (a.pinned ? -1 : 1) : planOrder(a, b)))
+  const drafting = articles
+    .filter((a) => a.status === 'drafting' && !claimed.has(a.id))
+    .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))
+  const queue = [...ready, ...drafting]
+
+  return slotDates.map((date) => {
+    const claimedArticle = scheduled.get(date)
+    if (claimedArticle) return { date, article: claimedArticle, assigned: 'scheduled' as const }
+    const next = queue.shift() ?? null
+    return { date, article: next, assigned: next ? ('auto' as const) : ('open' as const) }
+  })
+}
+
 // Config-talk articles in plan order (PRD §5.7).
 export function configArticles(articles: Article[]): Article[] {
   return articles.filter((a) => a.configTalk).sort(planOrder)
