@@ -16,6 +16,8 @@ export function Settings() {
   const theme = useStore((s) => s.theme)
   const toggleTheme = useStore((s) => s.toggleTheme)
   const importBackup = useStore((s) => s.importBackup)
+  const vocab = useStore((s) => s.vocab)
+  const customSources = useStore((s) => s.customSources)
   const push = useToast((s) => s.push)
 
   const setView = useStore((s) => s.setView)
@@ -81,7 +83,7 @@ export function Settings() {
   async function confirmImport() {
     if (!pendingImport) return
     const backup = parseBackup(pendingImport.text)
-    await importBackup(backup.articles, backup.images ?? [], backup.settings)
+    await importBackup(backup.articles, backup.images ?? [], backup.settings, backup.vocab, backup.customSources)
     setPendingImport(null)
     push(`Imported ${backup.articles.length} articles`)
   }
@@ -418,7 +420,12 @@ export function Settings() {
           <h2 className="set-title">Backup &amp; portability</h2>
           <p className="set-hint">Your insurance. Export anytime; import to restore or move machines.</p>
           <div className="set-btn-row">
-            <button className="btn btn-soft" onClick={() => exportJSON(Object.values(articles), Object.values(images), settings)}>
+            <button
+              className="btn btn-soft"
+              onClick={() =>
+                exportJSON(Object.values(articles), Object.values(images), settings, vocab, customSources)
+              }
+            >
               <Icon name="download" size={16} /> Export JSON backup
             </button>
             <button className="btn btn-soft" onClick={() => void exportMarkdownZip(Object.values(articles), images)}>

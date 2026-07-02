@@ -1,5 +1,7 @@
 import JSZip from 'jszip'
 import type { Article, InkImage, Settings } from '@/types'
+import type { Source } from '@/data/sources'
+import type { SavedWord } from './storage'
 import { slugify } from './text'
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -17,6 +19,9 @@ export interface Backup {
   articles: Article[]
   images: InkImage[]
   settings: Settings
+  // Added later; older backups won't have them — import treats them as optional.
+  vocab?: SavedWord[]
+  customSources?: Source[]
 }
 
 function triggerDownload(blob: Blob, filename: string) {
@@ -35,7 +40,13 @@ function stamp(): string {
 }
 
 // ── Full JSON backup (images embedded) ────────────────────────────────────
-export function exportJSON(articles: Article[], images: InkImage[], settings: Settings) {
+export function exportJSON(
+  articles: Article[],
+  images: InkImage[],
+  settings: Settings,
+  vocab: SavedWord[] = [],
+  customSources: Source[] = [],
+) {
   // Never write secrets into a backup file — keys stay only in this browser.
   const safeSettings: Settings = { ...settings, aiApiKey: '', imageApiKey: '' }
   const backup: Backup = {
@@ -45,6 +56,8 @@ export function exportJSON(articles: Article[], images: InkImage[], settings: Se
     articles,
     images,
     settings: safeSettings,
+    vocab,
+    customSources,
   }
   triggerDownload(new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' }), `inkwell-backup-${stamp()}.json`)
 }

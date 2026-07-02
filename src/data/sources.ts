@@ -357,6 +357,41 @@ export const SOURCES: Source[] = [
     ],
   },
   {
+    id: 'claude-memory',
+    kind: 'career',
+    name: "Claude Code's memory of me",
+    meta: 'docs/working-style.md · what my AI coding agent learned about how I work',
+    blurb:
+      "The persistent memory an AI coding agent keeps about you is an unusual mirror: months of real sessions distilled into principles, standing rules, and observed temperament — a read of your working style written by the thing that works alongside you daily. The chair test, no-loose-ends, teach-as-you-code, real-data-no-assumptions, the Build Lab discipline. Nobody else has this primary source about themselves.",
+    suggestions: [
+      {
+        title: 'My AI Remembers How I Work — Better Than I Describe It',
+        hook: "I read the memory file my coding agent keeps about me. It knows my design laws by name, my standing rules, my temperament under pressure. The most honest performance review I've ever gotten was written by a machine.",
+        tags: ['live', 'human', 'technical'],
+      },
+      {
+        title: 'The Chair Test: My One Law of Design',
+        hook: "When you look at a chair, you know it's meant to be sat on. Every element I ship has to pass that bar — function and state readable on sight, no manual. How one metaphor became five enforceable laws.",
+        tags: ['process', 'technical'],
+      },
+      {
+        title: 'Never a Loose Question: Designing for Closure',
+        hook: 'Every path in a product should end in a conclusion and a way to act on it — never a dead end, never an open question. The principle I hold my products AND my AI agents to.',
+        tags: ['process'],
+      },
+      {
+        title: "I Made My AI Teach Me While It Codes",
+        hook: '"I don\'t want you to blindly code. I want to understand how you\'re doing it." How a designer with no CS degree directs production systems — by making every session a lesson.',
+        tags: ['live', 'process', 'human'],
+      },
+      {
+        title: 'Corrections Become Law: Training an AI Team of One',
+        hook: "When my agent gets something wrong, the fix gets written to its memory and never relitigated. Managing AI turns out to look a lot like managing people — feedback only counts if it sticks.",
+        tags: ['live', 'technical', 'process'],
+      },
+    ],
+  },
+  {
     id: 'inkwell-meta',
     kind: 'writing',
     name: 'Inkwell itself',

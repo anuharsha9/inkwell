@@ -90,7 +90,13 @@ interface InkState {
   addSourceSuggestion: (sourceId: string, sg: Suggestion) => void
 
   // backup
-  importBackup: (articles: Article[], images: InkImage[], settings: Settings) => Promise<void>
+  importBackup: (
+    articles: Article[],
+    images: InkImage[],
+    settings: Settings,
+    vocab?: db.SavedWord[],
+    customSources?: Source[],
+  ) => Promise<void>
 }
 
 const STATUS_CYCLE: Status[] = ['idea', 'drafting', 'ready', 'published']
@@ -422,14 +428,24 @@ export const useStore = create<InkState>((set, get) => {
       void db.saveCustomSources(next)
     },
 
-    async importBackup(articles, images, settings) {
+    async importBackup(articles, images, settings, vocab, customSources) {
       const merged = { ...db.DEFAULT_SETTINGS, ...settings }
       await db.replaceAll(articles, images, merged)
       const articleMap: Record<string, Article> = {}
       for (const a of articles) articleMap[a.id] = a
       const imageMap: Record<string, InkImage> = {}
       for (const i of images) imageMap[i.id] = i
-      set({ articles: articleMap, images: imageMap, settings: merged, view: 'archive', activeId: null })
+      const patch: Partial<InkState> = { articles: articleMap, images: imageMap, settings: merged }
+      // Newer backups carry the word bank + custom sources; older ones keep what's here.
+      if (vocab) {
+        patch.vocab = vocab
+        await db.saveVocab(vocab)
+      }
+      if (customSources) {
+        patch.customSources = customSources
+        await db.saveCustomSources(customSources)
+      }
+      set({ ...patch, view: 'archive', activeId: null })
     },
   }
 })
