@@ -3587,3 +3587,52 @@ body.focus-mode .app {
   color: var(--accent);
   font-weight: 500;
 }
+
+/* ── Learn: AI-native highlight band ───────────────────────────────────── */
+.learn-ainative {
+  margin: 0 auto 56px;
+  max-width: 760px;
+  padding: 36px 40px;
+  text-align: center;
+  border-radius: var(--r-xl);
+  background: var(--accent-tint);
+  box-shadow: var(--edge-light), var(--elev-1);
+}
+.learn-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--accent);
+  margin-bottom: 12px;
+}
+.learn-ainative .learn-h2 {
+  margin-bottom: 12px;
+}
+.learn-ainative .learn-lead {
+  margin-bottom: 22px;
+}
+.learn-ainative-points {
+  display: grid;
+  gap: 11px;
+  max-width: 620px;
+  margin: 0 auto;
+  text-align: left;
+}
+.learn-ainative-points li {
+  display: flex;
+  align-items: flex-start;
+  gap: 11px;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--ink-soft);
+}
+.learn-ainative-points li :first-child {
+  color: var(--accent);
+  flex: none;
+  margin-top: 2px;
+}

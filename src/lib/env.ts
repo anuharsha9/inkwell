@@ -5,3 +5,9 @@
 // case study — without ever seeing her real writing.
 const flag = import.meta.env.VITE_DEMO_MODE
 export const DEMO_MODE = flag === '1' || flag === 'true'
+
+// True only under the Vite dev server (`npm run dev`), false in any production
+// build (her packaged desktop app / personal :3950 instance). Used to keep the
+// live Claude API OFF while the dev-mode agent authors AI content by hand — so
+// running the dev server never quietly spends her key. Her real build uses it.
+export const IS_DEV = import.meta.env.DEV

@@ -67,6 +67,14 @@ const FEATURES: Feature[] = [
   },
 ]
 
+const AI_NATIVE: string[] = [
+  'Learns your voice from your own writing — then drafts, tightens, and continues in it, never generic AI prose',
+  'Writes a full first draft from just a title and a hook, grounded in your real body of work',
+  'Platform-aware — coaches LinkedIn posts to the feed’s own rules (hook above the fold, comment-driving endings)',
+  'Two tiers of intelligence: free on-device models for the everyday, Claude for the genuinely generative',
+  'Honest by design: it never invents facts or sources, and nothing changes in your draft without your click',
+]
+
 const ENGINE: { icon: IconName; title: string; body: string }[] = [
   {
     icon: 'home',
@@ -116,6 +124,27 @@ export function Learn() {
           </p>
         )}
       </header>
+
+      <section className="learn-ainative">
+        <span className="learn-eyebrow">
+          <Icon name="spark" size={14} /> AI-native, not AI-bolted-on
+        </span>
+        <h2 className="learn-h2">Designed around AI from the first line</h2>
+        <p className="learn-lead">
+          Most tools bolt an “AI button” onto a text box. Inkwell is built the other way around — the intelligence is the
+          product. An AI that learns <em>your</em> voice and writes in it, drafts whole pieces from a one-line brief,
+          coaches you to the platform you’re publishing on, and teaches the craft behind every edit — while a layer of
+          fast on-device intelligence handles the everyday analysis, free and offline.
+        </p>
+        <ul className="learn-ainative-points">
+          {AI_NATIVE.map((p) => (
+            <li key={p}>
+              <Icon name="check" size={15} strokeWidth={2.2} />
+              {p}
+            </li>
+          ))}
+        </ul>
+      </section>
 
       <section className="learn-section">
         <h2 className="learn-h2">What makes it different</h2>

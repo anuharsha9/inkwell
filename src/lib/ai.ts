@@ -1,6 +1,6 @@
 import Anthropic from '@anthropic-ai/sdk'
 import type { Article, Settings } from '@/types'
-import { DEMO_MODE } from './env'
+import { DEMO_MODE, IS_DEV } from './env'
 import type { PrivacyCategory, PrivacyFinding } from './privacy'
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -13,14 +13,18 @@ import type { PrivacyCategory, PrivacyFinding } from './privacy'
 // local-only tool that she runs on her own machine with her own key.
 // ─────────────────────────────────────────────────────────────────────────
 
-// A key from .env.local (VITE_ANTHROPIC_KEY) is a convenient default for her
-// local build. The Settings field takes precedence (so the public demo's
-// per-visitor key still works); env is the fallback. NEVER set this var on
-// Vercel — Vite bakes it into the public bundle.
+// A key from .env.local (VITE_ANTHROPIC_KEY) is the default for her real build.
+// The Settings field takes precedence (so the public demo's per-visitor key
+// still works); env is the fallback. NEVER set this var on Vercel — Vite bakes
+// it into the public bundle.
 const ENV_KEY = (import.meta.env.VITE_ANTHROPIC_KEY ?? '').trim()
 
+// The .env.local key powers the LIVE Claude API in her real (production) build,
+// but is deliberately ignored under the dev server: dev mode is where the agent
+// authors AI content by hand, so running `npm run dev` never spends her key.
+// She can still opt in during dev by pasting a key into Settings explicitly.
 function effectiveKey(s: Settings): string {
-  return s.aiApiKey.trim() || ENV_KEY
+  return s.aiApiKey.trim() || (IS_DEV ? '' : ENV_KEY)
 }
 
 // Configured AND allowed: a key is present (Settings or env) and AI is on.
