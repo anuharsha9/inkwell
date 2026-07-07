@@ -16,9 +16,19 @@ const FEATURES: Feature[] = [
     body: 'Draft into an archive during bursts; publish from inventory whenever the urge hits. Writing and publishing are fully decoupled — no schedule, no pressure.',
   },
   {
+    icon: 'calendar',
+    title: 'A publishing pipeline that plans itself',
+    body: 'Set a posting cadence, schedule pieces by date, and the dashboard shows the next things you’ll publish and when — filling open days from what’s ready. Every piece knows whether it’s a full article or a feed post.',
+  },
+  {
+    icon: 'focus',
+    title: 'Distraction-free focus mode',
+    body: 'One click hides everything — rail, panels, chrome — leaving just your words on a calm, centered page. A quiet ring tracks the words you’ve written this sitting. Autosave never stops.',
+  },
+  {
     icon: 'spark',
     title: 'An AI coach in your voice',
-    body: 'It learns your voice from your own writing, then tightens, sharpens, expands, and continues drafts — never flattening you into generic AI prose. Review cards apply in one click.',
+    body: 'It learns your voice from your own writing, then tightens, sharpens, expands, and continues drafts — never flattening you into generic AI prose. When a piece is bound for LinkedIn, it coaches to the platform: hook above the fold, feed-native formatting, endings that earn comments. Review cards apply in one click.',
   },
   {
     icon: 'pen',
@@ -53,7 +63,7 @@ const FEATURES: Feature[] = [
   {
     icon: 'chart',
     title: 'A mirror for your craft',
-    body: 'Writing Craft reads across everything you’ve written — readability, sentence rhythm, lexical range, the habits you lean on and the strengths that recur — then distills a close read of your voice that sharpens the more you write.',
+    body: 'Writing Craft reads across everything you’ve written — readability, sentence rhythm, lexical range, the habits you lean on and the strengths that recur — then distills a close read of your voice that sharpens the more you write. A writing-days heatmap turns consistency into a habit you can see.',
   },
 ]
 

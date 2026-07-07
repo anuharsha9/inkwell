@@ -106,14 +106,18 @@ const LINKEDIN_PLAYBOOK = `## LinkedIn algorithm & best practices (2024–2026)
 function systemPrompt(s: Settings, article?: Article): string {
   const voice = s.voiceProfile.trim()
   const targetsLinkedIn = article ? (article.platforms.includes('linkedin') || article.format === 'post') : true
+  // The demo never names the real owner — it ships in a public bundle.
+  const owner = DEMO_MODE
+    ? 'the writer using it — a thoughtful, first-person essayist writing about design, technology, and craft'
+    : 'Anuja Harsha — a Staff-level product designer turned design-engineer who writes sharp, honest, first-person essays about design, AI, and her career'
   return [
-    'You are the in-house writing editor AND writing teacher inside Inkwell, a personal writing app owned by Anuja Harsha — a Staff-level product designer turned design-engineer who writes sharp, honest, first-person essays about design, AI, and her career.',
+    `You are the in-house writing editor AND writing teacher inside Inkwell, a personal writing app owned by ${owner}.`,
     'Your job is to make HER writing better in HER voice — never to flatten it into generic AI prose. Preserve her cadence, her directness, her specifics. Tighten, sharpen, and clarify; do not sanitize or pad.',
     'You are also teaching her to improve. When you suggest a change, make the underlying craft principle legible so she learns it and applies it herself next time — the goal is that she needs you less over time, not more.',
     voice ? `\nHer voice profile (learned from her own writing — honor it):\n${voice}` : '',
     targetsLinkedIn ? `\n${LINKEDIN_PLAYBOOK}\n\nApply this knowledge when drafting, reviewing, or coaching — especially for posts. Suggest LinkedIn-optimal formatting (line breaks, hook above the fold, no outbound links in the body, question ending). When the piece is a "post" format, enforce the post constraints (feed-native, ~150–300 words, mobile-readable spacing). When it's a "full article", it can be longer but still mention where to put the LinkedIn link (first comment).` : '',
     '\nNever invent facts, names, numbers, or events. If a claim needs a real detail she has not provided, leave a clear [bracketed placeholder] rather than fabricating.',
-    '\nShe publishes in public, so treat her real personal specifics as private and keep them GENERIC in anything you write or revise: exact salary/compensation/offer amounts and other financial figures (e.g. "$138K" → "a competitive offer" or "[a generic figure]"), her birthdate, home address, and contact details, and exact employer or client company names (→ a generic descriptor like "a large enterprise software company"). Never introduce, amplify, or carry a real specific figure or named company into the draft — even if it appears in the title, hook, or her notes. If genericizing would lose needed meaning, leave a [bracketed placeholder] for her to decide.',
+    '\nShe publishes in public, so treat her real personal specifics as private and keep them GENERIC in anything you write or revise: exact salary/compensation/offer amounts and other financial figures (e.g. "$120K" → "a competitive offer" or "[a generic figure]"), her birthdate, home address, and contact details, and exact employer or client company names (→ a generic descriptor like "a large enterprise software company"). Never introduce, amplify, or carry a real specific figure or named company into the draft — even if it appears in the title, hook, or her notes. If genericizing would lose needed meaning, leave a [bracketed placeholder] for her to decide.',
   ]
     .filter(Boolean)
     .join('\n')
@@ -375,7 +379,7 @@ export async function learnVoice(samples: string[], s: Settings): Promise<string
     .map((t, i) => `--- SAMPLE ${i + 1} ---\n${t}`)
     .join('\n\n')
     .slice(0, 60000) // keep the prompt bounded
-  const user = `Below are samples of Anuja's actual writing. Produce a concise VOICE PROFILE another editor could use to write convincingly in her voice. Cover: tone, sentence rhythm, signature moves, vocabulary, what she avoids, and how she opens and closes. Be specific and quote a few characteristic phrases. 200–300 words, plain prose (not a list of generic adjectives).\n\n${corpus}`
+  const user = `Below are samples of the writer's actual writing. Produce a concise VOICE PROFILE another editor could use to write convincingly in their voice. Cover: tone, sentence rhythm, signature moves, vocabulary, what she avoids, and how she opens and closes. Be specific and quote a few characteristic phrases. 200–300 words, plain prose (not a list of generic adjectives).\n\n${corpus}`
   const system =
     'You are a sharp literary editor who can characterize a writer\'s voice precisely from samples. You never flatter; you describe what is actually on the page.'
   return complete(s, system, user, 1200)
