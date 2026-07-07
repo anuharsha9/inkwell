@@ -129,10 +129,10 @@
 }
 .demo-chip {
   font-family: var(--font-mono);
-  font-size: 9.5px;
+  font-size: 10px;
   font-weight: 500;
   text-transform: uppercase;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.06em;
   color: var(--accent);
   background: var(--accent-tint);
   border: 1px solid color-mix(in srgb, var(--accent) 28%, transparent);
@@ -203,7 +203,7 @@
   padding: 9px 15px;
   border-radius: var(--r-md);
   font-weight: 500;
-  font-size: 13.5px;
+  font-size: 13px;
   white-space: nowrap;
   transition: background var(--t-fast) var(--ease), color var(--t-fast) var(--ease),
     border-color var(--t-fast) var(--ease), transform var(--t-fast) var(--ease), box-shadow var(--t-fast) var(--ease);
@@ -242,7 +242,7 @@
 }
 .btn-lg {
   padding: 12px 20px;
-  font-size: 14.5px;
+  font-size: 14px;
 }
 .btn:disabled {
   opacity: 0.5;
@@ -306,7 +306,7 @@
   color: var(--accent);
 }
 .dash-hero .lbl {
-  font-size: 13.5px;
+  font-size: 13px;
   font-weight: 500;
   color: var(--ink-soft);
   line-height: 1.3;
@@ -331,7 +331,7 @@
 }
 .stat .num {
   font-family: var(--font-ui);
-  font-size: 28px;
+  font-size: 27px;
   font-weight: 500;
   line-height: 1;
   font-variant-numeric: tabular-nums;
@@ -340,7 +340,7 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 11.5px;
+  font-size: 11px;
   font-weight: 500;
   text-transform: uppercase;
   letter-spacing: 0.06em;
@@ -365,7 +365,7 @@
   justify-content: space-between;
 }
 .stat-progress .num {
-  font-size: 22px;
+  font-size: 21px;
 }
 .progress-track {
   height: 6px;
@@ -435,7 +435,7 @@ button.pill:hover {
 /* ── Tag chip ──────────────────────────────────────────────────────────*/
 .tag {
   font-family: var(--font-mono);
-  font-size: 10.5px;
+  font-size: 11px;
   color: var(--ink-mute);
   letter-spacing: 0.02em;
 }
@@ -456,7 +456,7 @@ button.pill:hover {
   display: grid;
   place-items: center;
   font-family: var(--font-mono);
-  font-size: 9px;
+  font-size: 10px;
   font-weight: 500;
   background: var(--canvas-sunk);
   color: var(--ink-mute);
@@ -492,7 +492,7 @@ button.pill:hover {
 .segmented button {
   padding: 6px 13px;
   border-radius: 9px;
-  font-size: 12.5px;
+  font-size: 12px;
   font-weight: 500;
   color: var(--ink-soft);
   transition: background var(--t-fast) var(--ease), color var(--t-fast) var(--ease);
@@ -539,7 +539,7 @@ button.pill:hover {
   gap: 6px;
   padding: 6px 12px;
   border-radius: var(--r-pill);
-  font-size: 12.5px;
+  font-size: 12px;
   font-weight: 500;
   color: var(--ink-soft);
   background: var(--surface);
@@ -576,13 +576,13 @@ button.pill:hover {
 }
 .empty h3 {
   font-family: var(--font-display);
-  font-size: 22px;
+  font-size: 21px;
   font-weight: 500;
   margin-bottom: 8px;
 }
 .empty p {
   color: var(--ink-soft);
-  font-size: 14.5px;
+  font-size: 14px;
   line-height: 1.5;
 }
 
@@ -607,7 +607,7 @@ button.pill:hover {
   background: var(--ink);
   color: var(--canvas);
   border-radius: var(--r-pill);
-  font-size: 13.5px;
+  font-size: 13px;
   font-weight: 500;
   box-shadow: var(--shadow-lg);
   animation: toast-in var(--t-med) var(--ease-out);
@@ -696,7 +696,7 @@ button.pill:hover {
     padding: 7px 13px;
     border-radius: 20px;
     color: var(--ink-mute);
-    font-size: 9.5px;
+    font-size: 10px;
     font-weight: 500;
     transition: color var(--t-fast) var(--ease), background var(--t-fast) var(--ease);
   }
@@ -744,7 +744,7 @@ button.pill:hover {
     letter-spacing: -0.025em;
   }
   .dash-hero .num {
-    font-size: 42px;
+    font-size: 44px;
   }
   /* a touch more roundness + lift on mobile surfaces */
   .card,
@@ -796,7 +796,7 @@ button.pill:hover {
 }
 .tour-card-title {
   font-family: var(--font-display);
-  font-size: 19px;
+  font-size: 18px;
   font-weight: 600;
   color: var(--ink);
   line-height: 1.2;
@@ -851,7 +851,7 @@ button.pill:hover {
   background: var(--accent-fill);
   color: #fff;
   font-family: var(--font-ui);
-  font-size: 13.5px;
+  font-size: 13px;
   font-weight: 600;
   cursor: pointer;
   box-shadow: var(--shadow-accent), var(--shadow-md);
@@ -952,11 +952,11 @@ button.pill:hover {
 }
 .celebrate-label {
   font-family: var(--font-display);
-  font-size: 22px;
+  font-size: 21px;
   font-weight: 500;
   margin-top: 4px;
 }
 .celebrate-sub {
-  font-size: 13.5px;
+  font-size: 13px;
   color: var(--ink-soft);
 }

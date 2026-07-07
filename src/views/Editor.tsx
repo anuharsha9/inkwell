@@ -5,13 +5,10 @@ import { Menu, MenuItem } from '@/components/Menu'
 import { MetaPanel } from '@/components/editor/MetaPanel'
 import { Coach } from '@/components/editor/Coach'
 import { History } from '@/components/editor/History'
-import { Markdown } from '@/components/editor/Markdown'
 import { useCopyArticle } from '@/components/PublishActions'
 import { PLATFORM_META, PLATFORM_ORDER } from '@/lib/constants'
 import { localPrivacyScan } from '@/lib/privacy'
 import { NumberBadge } from '@/components/ui'
-
-type Pane = 'write' | 'preview' | 'split'
 
 export function Editor() {
   const activeId = useStore((s) => s.activeId)
@@ -24,7 +21,6 @@ export function Editor() {
   const saveState = useStore((s) => s.saveState)
   const { copyFull, copyBody } = useCopyArticle()
 
-  const [pane, setPane] = useState<Pane>('write')
   const [confirmDel, setConfirmDel] = useState(false)
   // The details panel is collapsible everywhere: open by default on desktop,
   // closed on narrow screens (where it's an overlay drawer). Choice persists.
@@ -82,7 +78,7 @@ export function Editor() {
     if (!ta) return
     ta.style.height = 'auto'
     ta.style.height = `${ta.scrollHeight}px`
-  }, [article?.body, pane, activeId])
+  }, [article?.body, activeId])
 
   if (!activeId || !article) {
     return (
@@ -150,18 +146,6 @@ export function Editor() {
         </div>
 
         <div className="editor-bar-right">
-          <div className="segmented">
-            <button className={pane === 'write' ? 'active' : ''} onClick={() => setPane('write')}>
-              <Icon name="pen" size={14} /> Write
-            </button>
-            <button className={pane === 'preview' ? 'active' : ''} onClick={() => setPane('preview')}>
-              <Icon name="eye" size={14} /> Preview
-            </button>
-            <button className={`split-only ${pane === 'split' ? 'active' : ''}`} onClick={() => setPane('split')}>
-              Split
-            </button>
-          </div>
-
           <button className="icon-btn" onClick={() => setFocus(true)} title="Focus mode — hide everything but the page">
             <Icon name="focus" size={18} />
           </button>
@@ -235,38 +219,29 @@ export function Editor() {
       {/* ── Body ──────────────────────────────────────────────────── */}
       <div className={`editor-grid ${metaOpen ? 'meta-open' : ''}`}>
         <div className="editor-main">
-          <div className={`compose pane-${pane}`}>
-            {(pane === 'write' || pane === 'split') && (
-              <div className="compose-write">
-                <input
-                  className="title-input"
-                  value={article.title}
-                  placeholder="Title"
-                  onChange={(e) => updateArticle(article.id, { title: e.target.value })}
-                />
-                <input
-                  className="hook-input"
-                  value={article.hook}
-                  placeholder="The hook — your editorial angle in one line"
-                  onChange={(e) => updateArticle(article.id, { hook: e.target.value })}
-                />
-                <textarea
-                  ref={bodyRef}
-                  className="body-input"
-                  value={article.body}
-                  placeholder="Start writing. Markdown welcome. Everything autosaves — you can't lose this."
-                  onChange={(e) => updateArticle(article.id, { body: e.target.value })}
-                  spellCheck
-                />
-              </div>
-            )}
-            {(pane === 'preview' || pane === 'split') && (
-              <div className="compose-preview">
-                <h1 className="preview-title">{article.title || 'Untitled'}</h1>
-                {article.hook && <p className="preview-hook">{article.hook}</p>}
-                <Markdown body={article.body} />
-              </div>
-            )}
+          <div className="compose">
+            <div className="compose-write">
+              <input
+                className="title-input"
+                value={article.title}
+                placeholder="Title"
+                onChange={(e) => updateArticle(article.id, { title: e.target.value })}
+              />
+              <input
+                className="hook-input"
+                value={article.hook}
+                placeholder="The hook — your editorial angle in one line"
+                onChange={(e) => updateArticle(article.id, { hook: e.target.value })}
+              />
+              <textarea
+                ref={bodyRef}
+                className="body-input"
+                value={article.body}
+                placeholder="Start writing. Markdown welcome. Everything autosaves — you can't lose this."
+                onChange={(e) => updateArticle(article.id, { body: e.target.value })}
+                spellCheck
+              />
+            </div>
           </div>
 
           <div className="editor-foot">

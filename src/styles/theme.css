@@ -14,6 +14,25 @@
   --font-read: 'Newsreader', Georgia, serif;
   --font-mono: 'IBM Plex Mono', ui-monospace, 'SF Mono', monospace;
 
+  /* ── Type scale (one ladder, no near-duplicates) ──────────────────────
+     Roles: Fraunces = display/headings · Newsreader = reading prose ·
+     Inter = UI/labels/numbers · Mono = data/eyebrow micro-labels.
+     Every font-size in the app snaps to one of these steps. */
+  --fs-micro: 10px; /* mono nano labels */
+  --fs-label: 11px; /* uppercase eyebrow labels, badges */
+  --fs-xs: 12px; /* small meta, captions */
+  --fs-sm: 13px; /* secondary UI text */
+  --fs-base: 14px; /* default UI body */
+  --fs-md: 15px; /* emphasized UI body */
+  --fs-lg: 16px; /* card/list titles */
+  --fs-read: 17px; /* reading prose (Newsreader) */
+  --fs-h3: 18px; /* small headings */
+  --fs-h2: 21px; /* section headings (Fraunces) */
+  --fs-h1: 27px; /* sub-page headings (Fraunces) */
+  --fs-title: 30px; /* page titles (Fraunces) */
+  --fs-display: 34px; /* editor title, big editorial */
+  --fs-hero: 44px; /* hero focal numbers */
+
   /* ── The signature accent (user-themeable, Moleskine-app style) ───────
      --accent-user is set inline by Settings; falls back to ink indigo.
      --accent      → text, icons, borders, tints (on the page background)
