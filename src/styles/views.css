@@ -49,7 +49,7 @@
   padding: 8px 10px;
   border-radius: var(--r-sm);
   font-size: 13px;
-  font-weight: 500;
+  font-weight: var(--fw-medium);
   color: var(--ink-soft);
   text-align: left;
   transition: background var(--t-fast) var(--ease), color var(--t-fast) var(--ease);
@@ -120,7 +120,7 @@
 .group-roman {
   font-family: var(--font-display);
   font-size: 27px;
-  font-weight: 500;
+  font-weight: var(--fw-medium);
   color: var(--accent);
   min-width: 34px;
   font-variant-numeric: normal;
@@ -133,7 +133,7 @@
 .group-title {
   font-family: var(--font-display);
   font-size: 21px;
-  font-weight: 500;
+  font-weight: var(--fw-medium);
   letter-spacing: -0.01em;
   line-height: 1.1;
 }
@@ -235,7 +235,7 @@
 .card-title {
   font-family: var(--font-ui);
   font-size: 16px;
-  font-weight: 600;
+  font-weight: var(--fw-semi);
   line-height: 1.32;
   letter-spacing: -0.012em;
   display: -webkit-box;
@@ -330,14 +330,14 @@
   place-items: center;
   font-family: var(--font-display);
   font-size: 30px;
-  font-weight: 500;
+  font-weight: var(--fw-medium);
   margin: 0 auto 18px;
   box-shadow: var(--shadow-accent);
 }
 .learn-title {
   font-family: var(--font-display);
   font-size: 44px;
-  font-weight: 500;
+  font-weight: var(--fw-medium);
   letter-spacing: -0.02em;
 }
 .learn-tag {
@@ -372,7 +372,7 @@
 .learn-h2 {
   font-family: var(--font-display);
   font-size: 27px;
-  font-weight: 500;
+  font-weight: var(--fw-medium);
   letter-spacing: -0.015em;
   text-align: center;
   margin-bottom: 10px;
@@ -411,7 +411,7 @@
 .learn-card-title {
   font-family: var(--font-display);
   font-size: 18px;
-  font-weight: 500;
+  font-weight: var(--fw-medium);
   letter-spacing: -0.01em;
   line-height: 1.2;
   margin-bottom: 7px;
@@ -451,7 +451,7 @@
 .learn-engine-title {
   font-family: var(--font-display);
   font-size: 17px;
-  font-weight: 500;
+  font-weight: var(--fw-medium);
   margin-bottom: 4px;
 }
 .learn-engine-body {
@@ -502,7 +502,7 @@
 .momentum-stat .m-num {
   font-family: var(--font-display);
   font-size: 21px;
-  font-weight: 500;
+  font-weight: var(--fw-medium);
   font-variant-numeric: tabular-nums;
 }
 .momentum-stat .m-lbl {
@@ -515,7 +515,7 @@
   align-items: center;
   gap: 4px;
   font-size: 13px;
-  font-weight: 500;
+  font-weight: var(--fw-medium);
   color: var(--accent);
 }
 
@@ -551,7 +551,7 @@
 .craft-stat .num {
   font-family: var(--font-ui);
   font-size: 30px;
-  font-weight: 500;
+  font-weight: var(--fw-medium);
   line-height: 1;
   font-variant-numeric: tabular-nums;
 }
@@ -576,7 +576,7 @@
   gap: 8px;
   font-family: var(--font-display);
   font-size: 21px;
-  font-weight: 500;
+  font-weight: var(--fw-medium);
   margin-bottom: 14px;
 }
 .craft-h2 svg {
@@ -632,7 +632,7 @@
 }
 .trend-label {
   font-size: 12px;
-  font-weight: 500;
+  font-weight: var(--fw-medium);
   color: var(--ink-soft);
 }
 .craft-grid {
@@ -656,7 +656,7 @@
 .craft-card-title {
   font-family: var(--font-ui);
   font-size: 16px;
-  font-weight: 600;
+  font-weight: var(--fw-semi);
   margin-bottom: 4px;
 }
 .craft-card-detail {
@@ -741,7 +741,7 @@
 }
 .version-reason {
   font-size: 13px;
-  font-weight: 600;
+  font-weight: var(--fw-semi);
   color: var(--ink);
 }
 .version-time {
@@ -773,7 +773,7 @@
   background: transparent;
   color: var(--accent);
   font-size: 12px;
-  font-weight: 600;
+  font-weight: var(--fw-semi);
   cursor: pointer;
 }
 .toast-action:hover {
@@ -804,7 +804,7 @@
 .vocab-review-card .vocab-word {
   font-family: var(--font-display, var(--font-read));
   font-size: 21px;
-  font-weight: 600;
+  font-weight: var(--fw-semi);
   display: block;
 }
 .vocab-review-card .vocab-pos {
@@ -823,7 +823,7 @@
   border: 1px solid var(--line);
   background: var(--surface);
   font-size: 13px;
-  font-weight: 600;
+  font-weight: var(--fw-semi);
   cursor: pointer;
 }
 .vocab-grade.again {
@@ -894,7 +894,7 @@
   outline: none;
   font-family: var(--font-display);
   font-size: 30px;
-  font-weight: 500;
+  font-weight: var(--fw-medium);
   letter-spacing: -0.02em;
   color: var(--ink);
   border-bottom: 1px solid var(--line);
@@ -948,7 +948,7 @@
 .book-chapter-title {
   font-family: var(--font-ui);
   font-size: 14px;
-  font-weight: 600;
+  font-weight: var(--fw-semi);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -1031,7 +1031,7 @@
   gap: 9px;
   font-family: var(--font-display);
   font-size: 21px;
-  font-weight: 500;
+  font-weight: var(--fw-medium);
   letter-spacing: -0.01em;
 }
 .home-section-title svg {
@@ -1049,7 +1049,7 @@
 .home-link {
   margin-left: auto;
   font-size: 12px;
-  font-weight: 500;
+  font-weight: var(--fw-medium);
   color: var(--accent);
 }
 .home-link:hover {
@@ -1108,7 +1108,7 @@
 .ready-title {
   font-family: var(--font-ui);
   font-size: 14px;
-  font-weight: 600;
+  font-weight: var(--fw-semi);
   letter-spacing: -0.01em;
   line-height: 1.3;
   cursor: pointer;
@@ -1176,7 +1176,7 @@
 .home-stat .num {
   font-family: var(--font-ui);
   font-size: 24px;
-  font-weight: 500;
+  font-weight: var(--fw-medium);
   line-height: 1;
   font-variant-numeric: tabular-nums;
 }
@@ -1210,7 +1210,7 @@
 .home-sugg-title {
   font-family: var(--font-ui);
   font-size: 14px;
-  font-weight: 600;
+  font-weight: var(--fw-semi);
   letter-spacing: -0.01em;
   line-height: 1.3;
   margin-bottom: 2px;
@@ -1286,7 +1286,7 @@
 .queue-title {
   font-family: var(--font-ui);
   font-size: 18px;
-  font-weight: 600;
+  font-weight: var(--fw-semi);
   letter-spacing: -0.012em;
   line-height: 1.25;
 }
@@ -1425,7 +1425,7 @@
 .title-input {
   font-family: var(--font-display);
   font-size: 34px;
-  font-weight: 500;
+  font-weight: var(--fw-medium);
   letter-spacing: -0.02em;
   line-height: 1.15;
   margin-bottom: 8px;
@@ -1460,7 +1460,7 @@
 .preview-title {
   font-family: var(--font-display);
   font-size: 34px;
-  font-weight: 500;
+  font-weight: var(--fw-medium);
   letter-spacing: -0.02em;
   line-height: 1.15;
   margin-bottom: 8px;
@@ -1512,7 +1512,7 @@
   letter-spacing: 0.06em;
   color: var(--ink-faint);
   padding: 3px 10px 4px;
-  font-weight: 600;
+  font-weight: var(--fw-semi);
 }
 
 /* ── Markdown render ───────────────────────────────────────────────────*/
@@ -1529,7 +1529,7 @@
 .md h2,
 .md h3 {
   font-family: var(--font-display);
-  font-weight: 500;
+  font-weight: var(--fw-medium);
   letter-spacing: -0.01em;
   line-height: 1.25;
   margin: 1.4em 0 0.5em;
@@ -1627,7 +1627,7 @@
   font-size: 11px;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  font-weight: 600;
+  font-weight: var(--fw-semi);
   color: var(--ink-mute);
   margin-bottom: 9px;
 }
@@ -1644,7 +1644,7 @@
   padding: 5px 11px;
   border-radius: var(--r-pill);
   font-size: 12px;
-  font-weight: 500;
+  font-weight: var(--fw-medium);
   color: var(--ink-soft);
   background: var(--surface);
   border: 1px solid var(--line);
@@ -1696,7 +1696,7 @@
   border: 1px solid var(--line);
   color: var(--ink-soft);
   font-size: 13px;
-  font-weight: 500;
+  font-weight: var(--fw-medium);
   transition: all var(--t-fast) var(--ease);
 }
 .toggle-row span:nth-child(2) {
@@ -1786,7 +1786,7 @@
   padding: 5px 9px;
   border-radius: var(--r-sm);
   font-size: 11px;
-  font-weight: 500;
+  font-weight: var(--fw-medium);
   color: var(--ink-soft);
   background: var(--surface-2);
   border: 1px solid var(--line);
@@ -1953,7 +1953,7 @@
   resize: vertical;
   font-family: var(--font-display);
   font-size: 18px;
-  font-weight: 500;
+  font-weight: var(--fw-medium);
   line-height: 1.35;
   letter-spacing: -0.01em;
   color: var(--ink);
@@ -1970,7 +1970,7 @@
   font-family: var(--font-mono);
   font-size: 12px;
   color: var(--accent);
-  font-weight: 500;
+  font-weight: var(--fw-medium);
 }
 .countdown.past {
   color: var(--status-drafting);
@@ -2010,7 +2010,7 @@
 .config-row-title {
   font-family: var(--font-ui);
   font-size: 15px;
-  font-weight: 600;
+  font-weight: var(--fw-semi);
   letter-spacing: -0.012em;
   margin-bottom: 2px;
 }
@@ -2038,7 +2038,7 @@
 }
 .wordwindow.in {
   color: var(--status-ready);
-  font-weight: 500;
+  font-weight: var(--fw-medium);
 }
 .outline-input {
   width: 100%;
@@ -2102,7 +2102,7 @@
   display: inline-block;
   font-family: var(--font-mono);
   font-size: 10px;
-  font-weight: 500;
+  font-weight: var(--fw-medium);
   text-transform: uppercase;
   letter-spacing: 0.06em;
   padding: 3px 9px;
@@ -2126,7 +2126,7 @@
 .source-name {
   font-family: var(--font-display);
   font-size: 21px;
-  font-weight: 500;
+  font-weight: var(--fw-medium);
   letter-spacing: -0.015em;
   line-height: 1.1;
 }
@@ -2175,7 +2175,7 @@
 .suggestion-title {
   font-family: var(--font-ui);
   font-size: 14px;
-  font-weight: 600;
+  font-weight: var(--fw-semi);
   letter-spacing: -0.01em;
   line-height: 1.3;
 }
@@ -2197,7 +2197,7 @@
   background: var(--accent-fill);
   color: var(--on-accent);
   border-color: var(--accent-fill);
-  font-weight: 600;
+  font-weight: var(--fw-semi);
 }
 .plan-publish:hover {
   background: var(--accent-press);
@@ -2246,7 +2246,7 @@
 .set-title {
   font-family: var(--font-display);
   font-size: 18px;
-  font-weight: 500;
+  font-weight: var(--fw-medium);
   margin-bottom: 6px;
 }
 .set-hint {
@@ -2261,7 +2261,7 @@
 .set-field label {
   display: block;
   font-size: 12px;
-  font-weight: 600;
+  font-weight: var(--fw-semi);
   color: var(--ink-soft);
   margin-bottom: 7px;
 }
@@ -2355,7 +2355,7 @@
 }
 .trust-list strong {
   color: var(--ink);
-  font-weight: 600;
+  font-weight: var(--fw-semi);
 }
 
 /* ═══════════════════════════════════════════════════════════════════════
@@ -2400,7 +2400,7 @@
   gap: 9px;
   font-family: var(--font-display);
   font-size: 18px;
-  font-weight: 500;
+  font-weight: var(--fw-medium);
   color: var(--accent);
 }
 .coach-tabs {
@@ -2412,7 +2412,7 @@
 .coach-tabs button {
   padding: 8px 13px;
   font-size: 13px;
-  font-weight: 500;
+  font-weight: var(--fw-medium);
   color: var(--ink-mute);
   border-bottom: 2px solid transparent;
   margin-bottom: -1px;
@@ -2450,7 +2450,7 @@
   font-size: 11px;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  font-weight: 600;
+  font-weight: var(--fw-semi);
   color: var(--ink-mute);
   margin: 4px 0 10px;
 }
@@ -2469,7 +2469,7 @@
   padding: 8px 10px;
   border-radius: var(--r-md);
   font-size: 12px;
-  font-weight: 500;
+  font-weight: var(--fw-medium);
   color: var(--ink);
   background: var(--surface-2);
   border: 1px solid var(--line);
@@ -2509,7 +2509,7 @@
 }
 .coach-draft-head {
   font-size: 11px;
-  font-weight: 600;
+  font-weight: var(--fw-semi);
   text-transform: uppercase;
   letter-spacing: 0.06em;
   color: var(--accent);
@@ -2564,7 +2564,7 @@
 .sugg-title {
   font-family: var(--font-ui);
   font-size: 14px;
-  font-weight: 600;
+  font-weight: var(--fw-semi);
   letter-spacing: -0.01em;
   margin-bottom: 4px;
 }
@@ -2668,7 +2668,7 @@
 .vocab-word {
   font-family: var(--font-display);
   font-size: 21px;
-  font-weight: 500;
+  font-weight: var(--fw-medium);
 }
 .vocab-phon {
   font-family: var(--font-mono);
@@ -2729,7 +2729,7 @@
 .vocab-saved-word {
   font-family: var(--font-display);
   font-size: 15px;
-  font-weight: 500;
+  font-weight: var(--fw-medium);
   color: var(--ink);
   flex: none;
 }
@@ -2782,7 +2782,7 @@
   place-items: center;
   font-family: var(--font-display);
   font-size: 18px;
-  font-weight: 500;
+  font-weight: var(--fw-medium);
   color: var(--ink);
 }
 .readiness.r-mid .readiness-ring {
@@ -2798,7 +2798,7 @@
 }
 .readiness-label strong {
   font-size: 13px;
-  font-weight: 600;
+  font-weight: var(--fw-semi);
 }
 .readiness-label span {
   font-size: 12px;
@@ -2829,12 +2829,12 @@
 .metric-value {
   font-family: var(--font-display);
   font-size: 18px;
-  font-weight: 500;
+  font-weight: var(--fw-medium);
   line-height: 1;
 }
 .metric-label {
   font-size: 11px;
-  font-weight: 500;
+  font-weight: var(--fw-medium);
   color: var(--ink-soft);
   margin-top: 3px;
 }
@@ -2878,7 +2878,7 @@
   border-radius: var(--r-pill);
   font-family: var(--font-mono);
   font-size: 11px;
-  font-weight: 500;
+  font-weight: var(--fw-medium);
   border: 1px solid transparent;
   transition: background var(--t-fast) var(--ease);
 }
@@ -2904,7 +2904,7 @@
   background: color-mix(in srgb, var(--status-ready) 10%, transparent);
   color: var(--status-ready);
   font-size: 13px;
-  font-weight: 500;
+  font-weight: var(--fw-medium);
 }
 .privacy-finding {
   position: relative;
@@ -2978,7 +2978,7 @@
 .modal h3 {
   font-family: var(--font-display);
   font-size: 21px;
-  font-weight: 500;
+  font-weight: var(--fw-medium);
   margin-bottom: 8px;
 }
 .modal p {
@@ -3102,7 +3102,7 @@
   background: none;
   font-family: var(--font-ui);
   font-size: 12px;
-  font-weight: 600;
+  font-weight: var(--fw-semi);
   color: var(--ink-mute);
   cursor: pointer;
 }
@@ -3143,7 +3143,7 @@
   background: var(--surface);
   font-family: var(--font-mono);
   font-size: 11px;
-  font-weight: 600;
+  font-weight: var(--fw-semi);
   color: var(--ink-mute);
   cursor: pointer;
 }
@@ -3185,7 +3185,7 @@
   padding: 0;
   font-family: var(--font-ui);
   font-size: 13px;
-  font-weight: 600;
+  font-weight: var(--fw-semi);
   color: var(--ink);
   text-align: left;
   cursor: pointer;
@@ -3196,6 +3196,10 @@
 }
 .plan-title:hover {
   color: var(--accent);
+}
+.plan-untitled {
+  font-style: italic;
+  color: var(--ink-mute);
 }
 .plan-meta {
   display: inline-flex;
@@ -3288,7 +3292,7 @@
 .plan-next-title {
   font-family: var(--font-ui);
   font-size: 13px;
-  font-weight: 600;
+  font-weight: var(--fw-semi);
   color: var(--ink-soft);
   white-space: nowrap;
   overflow: hidden;
@@ -3309,7 +3313,7 @@
 .format-chip {
   font-family: var(--font-mono);
   font-size: 10px;
-  font-weight: 600;
+  font-weight: var(--fw-semi);
   text-transform: uppercase;
   letter-spacing: 0.04em;
   padding: 2px 7px;
@@ -3364,7 +3368,7 @@
   padding: 10px 14px;
   border-radius: var(--r-md);
   font-size: 13px;
-  font-weight: 500;
+  font-weight: var(--fw-medium);
   border: 1.5px solid var(--line);
   color: var(--ink-soft);
   background: var(--surface-2);
@@ -3585,7 +3589,7 @@ body.focus-mode .app {
   float: left;
   margin: 4px 10px 0 0;
   color: var(--accent);
-  font-weight: 500;
+  font-weight: var(--fw-medium);
 }
 
 /* ── Learn: AI-native highlight band ───────────────────────────────────── */
@@ -3604,7 +3608,7 @@ body.focus-mode .app {
   gap: 7px;
   font-family: var(--font-mono);
   font-size: 11px;
-  font-weight: 600;
+  font-weight: var(--fw-semi);
   text-transform: uppercase;
   letter-spacing: 0.06em;
   color: var(--accent);
@@ -3635,4 +3639,75 @@ body.focus-mode .app {
   color: var(--accent);
   flex: none;
   margin-top: 2px;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   Predictive ghost-text (New Article dialog)
+   ═══════════════════════════════════════════════════════════════════════ */
+.na-suggest {
+  margin-top: 16px;
+}
+.na-suggest-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: var(--fw-semi);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--ink-mute);
+  margin-bottom: 8px;
+}
+.na-suggest-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  text-align: left;
+  padding: 9px 12px;
+  border-radius: var(--r-sm);
+  font-size: 13px;
+  font-weight: var(--fw-medium);
+  color: var(--ink-soft);
+  transition: background var(--t-fast) var(--ease), color var(--t-fast) var(--ease);
+}
+.na-suggest-item:hover {
+  background: var(--surface-hover);
+  color: var(--ink);
+}
+.na-suggest-item svg {
+  color: var(--accent);
+  flex: none;
+}
+.na-suggest-from {
+  margin-left: auto;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--ink-faint);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   Insight skeleton (loading state)
+   ═══════════════════════════════════════════════════════════════════════ */
+.insight-skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 6px 0;
+}
+.insight-skeleton-stats {
+  display: flex;
+  gap: 18px;
+}
+.insight-skeleton-stat {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.insight-skeleton-stat .skeleton:first-child {
+  height: 26px;
+  width: 60%;
+}
+.insight-skeleton-stat .skeleton:last-child {
+  height: 10px;
+  width: 80%;
 }

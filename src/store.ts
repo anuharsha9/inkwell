@@ -67,7 +67,7 @@ interface InkState {
 
   // articles — createArticle opens the new-article dialog; confirmCreate finalizes it
   createArticle: () => void
-  confirmCreate: () => string
+  confirmCreate: (title?: string) => string
   cancelCreate: () => void
   updateNewDialog: (patch: Partial<NewArticleDialog>) => void
   createIdeaFrom: (seed: Partial<Article>, opts?: { open?: boolean }) => string
@@ -250,10 +250,10 @@ export const useStore = create<InkState>((set, get) => {
       set({ newDialog: { open: true, format: 'article', scheduledFor: '' } })
     },
 
-    confirmCreate() {
+    confirmCreate(title) {
       const { format, scheduledFor } = get().newDialog
       const id = get().createIdeaFrom(
-        { format, scheduledFor: scheduledFor || null },
+        { title: title || '', format, scheduledFor: scheduledFor || null },
         { open: true },
       )
       set({ newDialog: { open: false, format: 'article', scheduledFor: '' } })

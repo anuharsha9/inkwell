@@ -1,13 +1,25 @@
+import { useMemo } from 'react'
 import { useStore } from '@/store'
 import { FORMAT_META, FORMAT_ORDER } from '@/lib/constants'
 import { Icon } from './Icon'
+import { activeSources } from '@/data/sources'
 import type { Format } from '@/types'
 
 export function NewArticleDialog() {
   const { open, format, scheduledFor } = useStore((s) => s.newDialog)
+  const articles = useStore((s) => s.articles)
   const updateNewDialog = useStore((s) => s.updateNewDialog)
   const confirmCreate = useStore((s) => s.confirmCreate)
   const cancelCreate = useStore((s) => s.cancelCreate)
+
+  const suggestions = useMemo(() => {
+    if (!open) return []
+    const existing = new Set(Object.values(articles).map((a) => a.title.trim().toLowerCase()))
+    return activeSources()
+      .flatMap((src) => src.suggestions.map((sg) => ({ src: src.name, title: sg.title })))
+      .filter((s) => !existing.has(s.title.trim().toLowerCase()))
+      .slice(0, 3)
+  }, [open, articles])
 
   if (!open) return null
 
@@ -41,6 +53,19 @@ export function NewArticleDialog() {
             onChange={(e) => updateNewDialog({ scheduledFor: e.target.value })}
           />
         </div>
+
+        {suggestions.length > 0 && (
+          <div className="na-suggest">
+            <div className="na-suggest-label">From your sources</div>
+            {suggestions.map((s) => (
+              <button key={s.title} className="na-suggest-item" onClick={() => confirmCreate(s.title)}>
+                <Icon name="spark" size={14} />
+                {s.title}
+                <span className="na-suggest-from">{s.src}</span>
+              </button>
+            ))}
+          </div>
+        )}
 
         <div className="modal-actions" style={{ marginTop: 20 }}>
           <button className="btn btn-ghost" onClick={cancelCreate}>Cancel</button>

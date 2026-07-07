@@ -10,6 +10,9 @@
 :root {
   /* ── Type ─────────────────────────────────────────────────────────── */
   --font-ui: 'Inter', system-ui, -apple-system, sans-serif;
+  --fw-normal: 400;
+  --fw-medium: 500;
+  --fw-semi: 600;
   --font-display: 'Fraunces', Georgia, serif;
   --font-read: 'Newsreader', Georgia, serif;
   --font-mono: 'IBM Plex Mono', ui-monospace, 'SF Mono', monospace;
@@ -152,6 +155,13 @@
   --status-drafting: #cf9c4e;
   --status-ready: #7fae74;
   --status-published: #9ba3f0;
+
+  /* Variable-font dark-mode weight bump: +50 for body, +30 for medium.
+     Thin strokes on a black canvas bleed into the background; heavier
+     weight restores the optical density you get "for free" on white. */
+  --fw-normal: 440;
+  --fw-medium: 520;
+  --fw-semi: 620;
 }
 
 /* ═══════════════════════════════════════════════════════════════════════
@@ -172,6 +182,7 @@ body,
 body {
   margin: 0;
   font-family: var(--font-ui);
+  font-weight: var(--fw-normal);
   background: var(--app-bg);
   background-attachment: fixed;
   color: var(--ink);

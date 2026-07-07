@@ -21,6 +21,19 @@
 .view-fade {
   animation: view-in 180ms var(--ease-out) both;
 }
+/* View Transitions API — smooth cross-fade when the browser supports it. */
+::view-transition-old(root) {
+  animation: 150ms var(--ease-out) both fade-out;
+}
+::view-transition-new(root) {
+  animation: 150ms var(--ease-out) 50ms both fade-in;
+}
+@keyframes fade-out {
+  to { opacity: 0; }
+}
+@keyframes fade-in {
+  from { opacity: 0; }
+}
 /* List items rise + fade in sequence. Bounded stagger so long lists settle. */
 .card-grid > .card,
 .plan-rows > * {
@@ -116,7 +129,7 @@
   display: grid;
   place-items: center;
   font-family: var(--font-display);
-  font-weight: 500;
+  font-weight: var(--fw-medium);
   font-size: 18px;
   box-shadow: var(--shadow-accent);
   flex: none;
@@ -124,13 +137,13 @@
 .rail-brand .wordmark {
   font-family: var(--font-display);
   font-size: 21px;
-  font-weight: 500;
+  font-weight: var(--fw-medium);
   letter-spacing: -0.01em;
 }
 .demo-chip {
   font-family: var(--font-mono);
   font-size: 10px;
-  font-weight: 500;
+  font-weight: var(--fw-medium);
   text-transform: uppercase;
   letter-spacing: 0.06em;
   color: var(--accent);
@@ -154,7 +167,7 @@
   padding: 10px 12px;
   border-radius: var(--r-md);
   color: var(--ink-soft);
-  font-weight: 500;
+  font-weight: var(--fw-medium);
   font-size: 14px;
   text-align: left;
   transition: background var(--t-fast) var(--ease), color var(--t-fast) var(--ease);
@@ -202,7 +215,7 @@
   gap: 8px;
   padding: 9px 15px;
   border-radius: var(--r-md);
-  font-weight: 500;
+  font-weight: var(--fw-medium);
   font-size: 13px;
   white-space: nowrap;
   transition: background var(--t-fast) var(--ease), color var(--t-fast) var(--ease),
@@ -299,7 +312,7 @@
 .dash-hero .num {
   font-family: var(--font-ui);
   font-size: 52px;
-  font-weight: 500;
+  font-weight: var(--fw-medium);
   line-height: 0.9;
   letter-spacing: -0.02em;
   font-variant-numeric: tabular-nums;
@@ -307,7 +320,7 @@
 }
 .dash-hero .lbl {
   font-size: 13px;
-  font-weight: 500;
+  font-weight: var(--fw-medium);
   color: var(--ink-soft);
   line-height: 1.3;
   max-width: 12ch;
@@ -332,7 +345,7 @@
 .stat .num {
   font-family: var(--font-ui);
   font-size: 27px;
-  font-weight: 500;
+  font-weight: var(--fw-medium);
   line-height: 1;
   font-variant-numeric: tabular-nums;
 }
@@ -341,7 +354,7 @@
   align-items: center;
   gap: 6px;
   font-size: 11px;
-  font-weight: 500;
+  font-weight: var(--fw-medium);
   text-transform: uppercase;
   letter-spacing: 0.06em;
   color: var(--ink-mute);
@@ -392,7 +405,7 @@
 .page-title {
   font-family: var(--font-display);
   font-size: 30px;
-  font-weight: 500;
+  font-weight: var(--fw-medium);
   letter-spacing: -0.015em;
 }
 .page-sub {
@@ -410,7 +423,7 @@
   border-radius: var(--r-pill);
   font-family: var(--font-mono);
   font-size: 11px;
-  font-weight: 500;
+  font-weight: var(--fw-medium);
   letter-spacing: 0.02em;
   white-space: nowrap;
   background: color-mix(in srgb, var(--pill-c) 14%, transparent);
@@ -457,7 +470,7 @@ button.pill:hover {
   place-items: center;
   font-family: var(--font-mono);
   font-size: 10px;
-  font-weight: 500;
+  font-weight: var(--fw-medium);
   background: var(--canvas-sunk);
   color: var(--ink-mute);
   border: 1px solid var(--line);
@@ -467,7 +480,7 @@ button.pill:hover {
 .numbadge {
   font-family: var(--font-mono);
   font-size: 11px;
-  font-weight: 500;
+  font-weight: var(--fw-medium);
   color: var(--ink-mute);
   background: var(--canvas-sunk);
   border-radius: var(--r-sm);
@@ -493,7 +506,7 @@ button.pill:hover {
   padding: 6px 13px;
   border-radius: 9px;
   font-size: 12px;
-  font-weight: 500;
+  font-weight: var(--fw-medium);
   color: var(--ink-soft);
   transition: background var(--t-fast) var(--ease), color var(--t-fast) var(--ease);
 }
@@ -540,7 +553,7 @@ button.pill:hover {
   padding: 6px 12px;
   border-radius: var(--r-pill);
   font-size: 12px;
-  font-weight: 500;
+  font-weight: var(--fw-medium);
   color: var(--ink-soft);
   background: var(--surface);
   border: 1px solid var(--line);
@@ -577,7 +590,7 @@ button.pill:hover {
 .empty h3 {
   font-family: var(--font-display);
   font-size: 21px;
-  font-weight: 500;
+  font-weight: var(--fw-medium);
   margin-bottom: 8px;
 }
 .empty p {
@@ -608,7 +621,7 @@ button.pill:hover {
   color: var(--canvas);
   border-radius: var(--r-pill);
   font-size: 13px;
-  font-weight: 500;
+  font-weight: var(--fw-medium);
   box-shadow: var(--shadow-lg);
   animation: toast-in var(--t-med) var(--ease-out);
 }
@@ -645,6 +658,90 @@ button.pill:hover {
   50% {
     opacity: 0.55;
   }
+}
+
+/* ── Skeleton shimmer (loading placeholders) ──────────────────────────*/
+@keyframes shimmer {
+  to {
+    background-position: -200% 0;
+  }
+}
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--surface-2) 30%,
+    color-mix(in srgb, var(--surface) 70%, var(--ink-faint)) 50%,
+    var(--surface-2) 70%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.6s var(--ease) infinite;
+  border-radius: var(--r-sm);
+}
+.skeleton-line {
+  height: 13px;
+  border-radius: 6px;
+}
+.skeleton-line + .skeleton-line {
+  margin-top: 10px;
+}
+.skeleton-line:nth-child(2) {
+  width: 75%;
+}
+.skeleton-line:nth-child(3) {
+  width: 55%;
+}
+
+/* ── Scroll-linked compact header ─────────────────────────────────────*/
+.scroll-header {
+  position: fixed;
+  top: 0;
+  left: var(--rail);
+  right: 0;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 0 56px;
+  height: 48px;
+  background: color-mix(in srgb, var(--canvas) 82%, transparent);
+  backdrop-filter: blur(14px) saturate(1.4);
+  -webkit-backdrop-filter: blur(14px) saturate(1.4);
+  border-bottom: 1px solid var(--line);
+  transform: translateY(-100%);
+  opacity: 0;
+  pointer-events: none;
+  transition: transform var(--t-med) var(--ease-out), opacity var(--t-med) var(--ease);
+}
+.scroll-header.visible {
+  transform: translateY(0);
+  opacity: 1;
+  pointer-events: auto;
+}
+.app:has(.rail.collapsed) .scroll-header {
+  left: 74px;
+}
+.scroll-header-title {
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: var(--fw-medium);
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+}
+.scroll-header .btn {
+  margin-left: auto;
+}
+@media (max-width: 760px) {
+  .scroll-header {
+    left: 0;
+    padding: 0 16px;
+  }
+}
+
+/* ── Color temperature (contextual warmth) ────────────────────────────
+   Subtle hue-shift: warm when composing (editor), cool when analyzing. */
+body.temp-warm {
+  --canvas: color-mix(in srgb, var(--canvas) 97%, #2a1d0e);
+  --surface: color-mix(in srgb, var(--surface) 97%, #2a1d0e);
 }
 
 /* ── Mobile: iOS-26 "Liquid Glass" chrome (hidden on desktop) ──────────*/
@@ -697,7 +794,7 @@ button.pill:hover {
     border-radius: 20px;
     color: var(--ink-mute);
     font-size: 10px;
-    font-weight: 500;
+    font-weight: var(--fw-medium);
     transition: color var(--t-fast) var(--ease), background var(--t-fast) var(--ease);
   }
   .tab.active {
@@ -797,7 +894,7 @@ button.pill:hover {
 .tour-card-title {
   font-family: var(--font-display);
   font-size: 18px;
-  font-weight: 600;
+  font-weight: var(--fw-semi);
   color: var(--ink);
   line-height: 1.2;
 }
@@ -821,7 +918,7 @@ button.pill:hover {
   padding: 4px 2px;
   font-family: var(--font-ui);
   font-size: 13px;
-  font-weight: 600;
+  font-weight: var(--fw-semi);
   color: var(--ink-mute);
   cursor: pointer;
 }
@@ -852,7 +949,7 @@ button.pill:hover {
   color: #fff;
   font-family: var(--font-ui);
   font-size: 13px;
-  font-weight: 600;
+  font-weight: var(--fw-semi);
   cursor: pointer;
   box-shadow: var(--shadow-accent), var(--shadow-md);
 }
@@ -947,13 +1044,13 @@ button.pill:hover {
 .celebrate-big {
   font-family: var(--font-display);
   font-size: 34px;
-  font-weight: 500;
+  font-weight: var(--fw-medium);
   line-height: 1;
 }
 .celebrate-label {
   font-family: var(--font-display);
   font-size: 21px;
-  font-weight: 500;
+  font-weight: var(--fw-medium);
   margin-top: 4px;
 }
 .celebrate-sub {

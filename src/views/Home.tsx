@@ -113,7 +113,7 @@ function Pipeline() {
               <div className={`plan-row ${slot.assigned}`} key={slot.date}>
                 <span className="plan-date">{label}</span>
                 <button className="plan-title" onClick={() => openEditor(a.id)}>
-                  {a.title || 'Untitled'}
+                  {a.title || <span className="plan-untitled">Untitled — tap to start writing</span>}
                 </button>
                 <span className="plan-meta">
                   <span className={`plan-format f-${a.format ?? 'article'}`}>
@@ -245,6 +245,21 @@ function InsightCard() {
       )}
       {error && <div className="ai-error" style={{ marginTop: 10 }}>{error}</div>}
 
+      {busy && !insight && (
+        <div className="insight-skeleton">
+          <div className="insight-skeleton-stats">
+            {[1, 2, 3].map((i) => (
+              <div className="insight-skeleton-stat" key={i}>
+                <div className="skeleton" />
+                <div className="skeleton" />
+              </div>
+            ))}
+          </div>
+          <div className="skeleton skeleton-line" style={{ width: '90%' }} />
+          <div className="skeleton skeleton-line" style={{ width: '70%' }} />
+        </div>
+      )}
+
       {configured ? (
         <button className="btn btn-soft btn-block" style={{ marginTop: 12 }} disabled={busy} onClick={run}>
           {busy ? (
@@ -258,9 +273,13 @@ function InsightCard() {
           )}
         </button>
       ) : (
-        <button className="btn btn-ghost btn-block" style={{ marginTop: 12 }} onClick={() => setView('settings')}>
-          {disabled ? 'AI is off — manage in Settings' : 'Add Claude for AI lessons'}
-        </button>
+        <div className="home-empty" style={{ marginTop: 6 }}>
+          <Icon name="spark" size={22} />
+          <p>Add your Claude API key to unlock AI-powered writing lessons — pattern detection, voice coaching, and craft insights drawn from your own writing.</p>
+          <button className="btn btn-ghost" onClick={() => setView('settings')}>
+            {disabled ? 'AI is off — manage in Settings' : 'Connect Claude'}
+          </button>
+        </div>
       )}
     </section>
   )
