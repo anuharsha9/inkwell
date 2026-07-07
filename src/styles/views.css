@@ -22,21 +22,23 @@
   min-width: 150px;
   padding: 6px;
   background: var(--surface);
-  border: 1px solid var(--line);
   border-radius: var(--r-md);
-  box-shadow: var(--shadow-lg);
-  animation: menu-in var(--t-fast) var(--ease-out);
+  box-shadow: var(--edge-light), var(--elev-3);
+  transform-origin: top center;
+  animation: menu-in var(--t-med) var(--ease-spring);
 }
 .menu-pop.left {
   left: 0;
+  transform-origin: top left;
 }
 .menu-pop.right {
   right: 0;
+  transform-origin: top right;
 }
 @keyframes menu-in {
   from {
     opacity: 0;
-    transform: translateY(-4px);
+    transform: translateY(-6px) scale(0.97);
   }
 }
 .menu-item {
@@ -85,7 +87,7 @@
   align-items: center;
   gap: 10px;
   flex-wrap: wrap;
-  margin-bottom: 26px;
+  margin-bottom: 34px;
 }
 .chip-count {
   font-family: var(--font-mono);
@@ -105,13 +107,13 @@
 .groups {
   display: flex;
   flex-direction: column;
-  gap: 38px;
+  gap: 54px;
 }
 .group-head {
   display: flex;
   align-items: center;
   gap: 14px;
-  margin-bottom: 16px;
+  margin-bottom: 22px;
   padding-bottom: 12px;
   border-bottom: 1px solid var(--line);
 }
@@ -155,25 +157,22 @@
 .card-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
-  gap: 16px;
+  gap: 22px;
 }
 
 .card {
   display: flex;
   flex-direction: column;
   background: var(--surface);
-  border: 1px solid var(--line);
   border-radius: var(--r-lg);
   overflow: hidden;
   cursor: pointer;
-  box-shadow: var(--shadow-sm);
-  transition: transform var(--t-med) var(--ease-out), box-shadow var(--t-med) var(--ease-out),
-    border-color var(--t-med) var(--ease);
+  box-shadow: var(--edge-light), var(--elev-1);
+  transition: transform var(--t-med) var(--ease-spring), box-shadow var(--t-med) var(--ease-out);
 }
 .card:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-md);
-  border-color: var(--line-strong);
+  transform: translateY(-3px);
+  box-shadow: var(--edge-light-hover), var(--elev-2);
 }
 .card:focus-visible {
   outline: 2px solid var(--accent);
@@ -191,10 +190,10 @@
   display: block;
 }
 .card-body {
-  padding: 14px 16px 15px;
+  padding: 18px 20px 19px;
   display: flex;
   flex-direction: column;
-  gap: 9px;
+  gap: 11px;
   flex: 1;
 }
 .card-top {
@@ -395,10 +394,9 @@
 }
 .learn-card {
   background: var(--surface);
-  border: 1px solid var(--line);
   border-radius: var(--r-lg);
-  padding: 20px;
-  box-shadow: var(--shadow-sm);
+  padding: 24px;
+  box-shadow: var(--edge-light), var(--elev-1);
 }
 .learn-card-icon {
   width: 40px;
@@ -480,18 +478,17 @@
   display: flex;
   align-items: center;
   gap: 28px;
-  padding: 14px 22px;
+  padding: 16px 24px;
   margin-bottom: 18px;
   background: var(--surface);
-  border: 1px solid var(--line);
   border-radius: var(--r-lg);
-  box-shadow: var(--shadow-sm);
+  box-shadow: var(--edge-light), var(--elev-1);
   text-align: left;
-  transition: border-color var(--t-fast) var(--ease), box-shadow var(--t-fast) var(--ease);
+  transition: transform var(--t-med) var(--ease-spring), box-shadow var(--t-med) var(--ease-out);
 }
 .momentum:hover {
-  border-color: var(--line-strong);
-  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+  box-shadow: var(--edge-light-hover), var(--elev-2);
 }
 .momentum-stat {
   display: flex;
@@ -544,10 +541,9 @@
 }
 .craft-stat {
   background: var(--surface);
-  border: 1px solid var(--line);
   border-radius: var(--r-lg);
-  padding: 16px 18px;
-  box-shadow: var(--shadow-sm);
+  padding: 18px 20px;
+  box-shadow: var(--edge-light), var(--elev-1);
   display: flex;
   flex-direction: column;
   gap: 3px;
@@ -593,8 +589,8 @@
   height: 140px;
   padding: 16px 20px;
   background: var(--surface);
-  border: 1px solid var(--line);
   border-radius: var(--r-lg);
+  box-shadow: var(--edge-light), var(--elev-1);
 }
 .trend-col {
   flex: 1;
@@ -614,10 +610,20 @@
 }
 .trend-bar {
   width: 100%;
-  background: var(--accent);
-  border-radius: 6px 6px 0 0;
+  background: linear-gradient(180deg, var(--accent), color-mix(in srgb, var(--accent) 55%, transparent));
+  border-radius: 6px 6px 2px 2px;
   min-height: 4px;
-  transition: height var(--t-slow) var(--ease-out);
+  transform-origin: bottom;
+  animation: bar-grow 620ms var(--ease-out) both;
+}
+.trend-col:hover .trend-bar {
+  background: linear-gradient(180deg, var(--accent), color-mix(in srgb, var(--accent) 72%, transparent));
+}
+@keyframes bar-grow {
+  from {
+    transform: scaleY(0);
+    opacity: 0.4;
+  }
 }
 .trend-words {
   font-family: var(--font-mono);
@@ -635,11 +641,11 @@
   gap: 20px;
 }
 .craft-card {
-  border: 1px solid var(--line);
   border-radius: var(--r-md);
-  padding: 14px 16px;
+  padding: 16px 18px;
   margin-bottom: 10px;
   background: var(--surface);
+  box-shadow: var(--edge-light), var(--elev-1);
 }
 .craft-card.watch {
   border-left: 3px solid var(--status-drafting);
@@ -1001,15 +1007,14 @@
 .home-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 18px;
+  gap: 24px;
   align-items: start;
 }
 .home-section {
   background: var(--surface);
-  border: 1px solid var(--line);
   border-radius: var(--r-lg);
-  padding: 20px 22px;
-  box-shadow: var(--shadow-sm);
+  padding: 26px 28px;
+  box-shadow: var(--edge-light), var(--elev-1);
 }
 .home-section.span-2 {
   grid-column: 1 / -1;
@@ -1018,7 +1023,7 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  margin-bottom: 16px;
+  margin-bottom: 22px;
 }
 .home-section-title {
   display: flex;
@@ -1161,12 +1166,12 @@
 .home-stat {
   flex: 1;
   background: var(--surface-2);
-  border: 1px solid var(--line);
   border-radius: var(--r-md);
-  padding: 12px 14px;
+  padding: 14px 16px;
   display: flex;
   flex-direction: column;
   gap: 2px;
+  box-shadow: var(--edge-light), var(--elev-1);
 }
 .home-stat .num {
   font-family: var(--font-ui);
@@ -2963,13 +2968,12 @@
 }
 .modal {
   background: var(--surface);
-  border: 1px solid var(--line);
   border-radius: var(--r-lg);
-  padding: 24px;
+  padding: 28px;
   max-width: 400px;
   width: 100%;
-  box-shadow: var(--shadow-lg);
-  animation: menu-in var(--t-med) var(--ease-out);
+  box-shadow: var(--edge-light), var(--elev-3);
+  animation: menu-in var(--t-med) var(--ease-spring);
 }
 .modal h3 {
   font-family: var(--font-display);
@@ -3156,8 +3160,14 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 9px 4px;
+  padding: 13px 10px;
+  margin: 0 -10px;
+  border-radius: var(--r-sm);
   border-bottom: 1px solid var(--line);
+  transition: background var(--t-fast) var(--ease);
+}
+.plan-row:hover {
+  background: var(--surface-hover);
 }
 .plan-row:last-child {
   border-bottom: none;
@@ -3388,4 +3398,192 @@
   .editor-grid:not(.meta-open) .metapanel {
     display: none;
   }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   Focus mode — a distraction-free page (hides all chrome) + session ring
+   ═══════════════════════════════════════════════════════════════════════ */
+body.focus-mode .rail,
+body.focus-mode .tabbar,
+body.focus-mode .compose-fab {
+  display: none;
+}
+/* Beats .app:has(.rail.collapsed) so the hidden rail's column can't strand main. */
+body.focus-mode .app {
+  grid-template-columns: 1fr !important;
+}
+.editor.focus-mode .editor-bar {
+  display: none;
+}
+.editor.focus-mode .editor-grid,
+.editor.focus-mode .editor-grid.meta-open {
+  grid-template-columns: 1fr;
+}
+.editor.focus-mode .metapanel {
+  display: none;
+}
+.editor.focus-mode .editor-main {
+  padding-top: 7vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  animation: view-in 240ms var(--ease-out) both;
+}
+.editor.focus-mode .compose,
+.editor.focus-mode .editor-foot {
+  width: 100%;
+  max-width: 720px;
+}
+/* A soft vignette so the eye settles on the writing column. */
+.editor.focus-mode::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background: radial-gradient(120% 75% at 50% 40%, transparent 55%, color-mix(in srgb, var(--canvas) 70%, #000) 100%);
+}
+.editor.focus-mode .editor-main {
+  position: relative;
+  z-index: 1;
+}
+.focus-exit {
+  position: fixed;
+  top: 20px;
+  right: 24px;
+  z-index: 3;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: var(--r-pill);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--ink-mute);
+  background: var(--surface);
+  box-shadow: var(--edge-light), var(--elev-1);
+  opacity: 0.5;
+  transition: opacity var(--t-fast) var(--ease);
+  animation: view-in 240ms var(--ease-out) both;
+}
+.focus-exit:hover {
+  opacity: 1;
+  color: var(--ink-soft);
+}
+
+/* Session-progress ring in the editor footer */
+.session-ring {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--accent);
+}
+.session-ring .ring-track {
+  stroke: var(--line-strong);
+}
+.session-ring .ring-fill {
+  stroke: var(--accent);
+  transition: stroke-dashoffset var(--t-slow) var(--ease-out);
+}
+
+/* ── Writing heatmap (GitHub-calendar style) ───────────────────────────── */
+.heatmap {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.heatmap-grid {
+  display: grid;
+  grid-auto-flow: column;
+  grid-template-rows: repeat(7, 1fr);
+  gap: 3px;
+  width: max-content;
+  max-width: 100%;
+  overflow-x: auto;
+}
+.heat-cell {
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+  background: var(--surface-2);
+  flex: none;
+}
+.heat-cell.l1 {
+  background: color-mix(in srgb, var(--accent) 28%, var(--surface-2));
+}
+.heat-cell.l2 {
+  background: color-mix(in srgb, var(--accent) 52%, var(--surface-2));
+}
+.heat-cell.l3 {
+  background: color-mix(in srgb, var(--accent) 76%, var(--surface-2));
+}
+.heat-cell.l4 {
+  background: var(--accent);
+}
+.heat-cell.future {
+  visibility: hidden;
+}
+.heatmap-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.heatmap-count {
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  color: var(--ink-soft);
+}
+.heatmap-legend {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  color: var(--ink-mute);
+}
+.heatmap-legend .heat-cell {
+  width: 11px;
+  height: 11px;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   Typographic craft — balance, figures, and an editorial drop-initial
+   ═══════════════════════════════════════════════════════════════════════ */
+/* Headings wrap in balanced, even lines (no orphan words). */
+.page-title,
+.preview-title,
+.craft-h2,
+.home-section-title,
+.group-title,
+.card-title,
+.celebrate-label,
+.md h1,
+.md h2,
+.md h3 {
+  text-wrap: balance;
+}
+/* Body prose avoids ragged last-line orphans. */
+.md,
+.body-input,
+.card-hook,
+.preview-hook,
+.hook-input {
+  text-wrap: pretty;
+}
+/* Reading prose uses old-style (text) figures; data stays tabular/lining. */
+.compose-preview .md,
+.preview-hook {
+  font-variant-numeric: oldstyle-nums proportional-nums;
+}
+/* An editorial drop-initial opens the reading view — signature, not gaudy. */
+.compose-preview .md > p:first-of-type::first-letter {
+  font-family: var(--font-display);
+  font-size: 3.2em;
+  line-height: 0.78;
+  float: left;
+  margin: 4px 10px 0 0;
+  color: var(--accent);
+  font-weight: 500;
 }

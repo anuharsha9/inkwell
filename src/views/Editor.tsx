@@ -43,12 +43,37 @@ export function Editor() {
   const [coachOpen, setCoachOpen] = useState(false)
   const [historyOpen, setHistoryOpen] = useState(false)
   const [coachTab, setCoachTab] = useState<'improve' | 'checks'>('improve')
+  // Focus mode — hides all chrome (rail, panels, bar) for a distraction-free page.
+  const [focus, setFocus] = useState(false)
   const bodyRef = useRef<HTMLTextAreaElement>(null)
+
+  // Words written in this sitting — captured when a piece opens, so it counts
+  // up as she writes (and resets when she switches to a different piece).
+  const sessionBase = useRef<{ id: string; words: number }>({ id: '', words: 0 })
+  if (article && sessionBase.current.id !== article.id) {
+    sessionBase.current = { id: article.id, words: article.wordCount }
+  }
+  const sessionWords = Math.max(0, (article?.wordCount ?? 0) - sessionBase.current.words)
 
   // Always start at the top when a new article opens.
   useEffect(() => {
     setConfirmDel(false)
   }, [activeId])
+
+  // Focus mode toggles a body class (hides the nav rail / tab bar) and listens
+  // for Escape to leave. Cleaned up on unmount so chrome never gets stuck hidden.
+  useEffect(() => {
+    document.body.classList.toggle('focus-mode', focus)
+    return () => document.body.classList.remove('focus-mode')
+  }, [focus])
+  useEffect(() => {
+    if (!focus) return
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setFocus(false)
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [focus])
 
   // The writing canvas grows with the text — no inner scrollbar, no dead zone
   // below a cut-off box; the page itself scrolls.
@@ -98,7 +123,13 @@ export function Editor() {
   }
 
   return (
-    <div className="editor">
+    <div className={`editor ${focus ? 'focus-mode' : ''}`}>
+      {/* Distraction-free: a quiet way back out when all chrome is hidden. */}
+      {focus && (
+        <button className="focus-exit" onClick={() => setFocus(false)} title="Leave focus mode (Esc)">
+          <Icon name="compress" size={16} /> <span>Esc</span>
+        </button>
+      )}
       {/* ── Top bar ───────────────────────────────────────────────── */}
       <header className="editor-bar">
         <div className="editor-bar-left">
@@ -130,6 +161,10 @@ export function Editor() {
               Split
             </button>
           </div>
+
+          <button className="icon-btn" onClick={() => setFocus(true)} title="Focus mode — hide everything but the page">
+            <Icon name="focus" size={18} />
+          </button>
 
           <button
             className={`btn ${coachOpen ? 'btn-primary' : 'btn-soft'}`}
@@ -238,6 +273,12 @@ export function Editor() {
             <span className="wc-big">{article.wordCount.toLocaleString()} words</span>
             <span className="foot-sep">·</span>
             <span>{readingTime(article.wordCount)}</span>
+            {sessionWords > 0 && (
+              <>
+                <span className="foot-sep">·</span>
+                <SessionRing words={sessionWords} />
+              </>
+            )}
           </div>
         </div>
 
@@ -276,6 +317,33 @@ export function Editor() {
         </div>
       )}
     </div>
+  )
+}
+
+// A quiet ring that fills toward a gentle 500-word sitting — momentum, not a quota.
+function SessionRing({ words, goal = 500 }: { words: number; goal?: number }) {
+  const r = 7
+  const circ = 2 * Math.PI * r
+  const pct = Math.min(1, words / goal)
+  return (
+    <span className="session-ring" title={`${words} words this session`}>
+      <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true">
+        <circle cx="9" cy="9" r={r} className="ring-track" fill="none" strokeWidth="2" />
+        <circle
+          cx="9"
+          cy="9"
+          r={r}
+          className="ring-fill"
+          fill="none"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeDasharray={circ}
+          strokeDashoffset={circ * (1 - pct)}
+          transform="rotate(-90 9 9)"
+        />
+      </svg>
+      +{words.toLocaleString()} this session
+    </span>
   )
 }
 

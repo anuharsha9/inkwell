@@ -142,3 +142,48 @@ export function analyzeCorpus(articles: Article[]): CraftReport | null {
 
   return { pieces: pieces.length, totalWords: ms.reduce((a, m) => a + m.words, 0), avg, watch, strengths, focus, trend }
 }
+
+// ── Writing activity heatmap (GitHub-calendar style) ───────────────────────
+// A day→words map from every bodied piece (by last-touched date), quantized to
+// intensity levels. Sparse today; it fills in as she writes daily — which is the
+// whole point of the habit goal. Columns are weeks, aligned to start on Sunday.
+export interface HeatCell {
+  date: string // yyyy-mm-dd
+  words: number
+  level: 0 | 1 | 2 | 3 | 4
+  future: boolean // days after today render as empty placeholders
+}
+
+function heatLevel(words: number): 0 | 1 | 2 | 3 | 4 {
+  if (words <= 0) return 0
+  if (words < 150) return 1
+  if (words < 500) return 2
+  if (words < 1200) return 3
+  return 4
+}
+
+export function writingHeatmap(articles: Article[], weeks = 18, now: Date = new Date()): HeatCell[] {
+  const byDay = new Map<string, number>()
+  for (const a of articles) {
+    if (!a.body.trim()) continue
+    const key = new Date(a.updatedAt).toISOString().slice(0, 10)
+    byDay.set(key, (byDay.get(key) ?? 0) + a.wordCount)
+  }
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+  // Start `weeks` back, then rewind to that week's Sunday so the grid aligns.
+  const start = new Date(today)
+  start.setDate(start.getDate() - weeks * 7)
+  start.setDate(start.getDate() - start.getDay()) // back to Sunday
+  const cells: HeatCell[] = []
+  const d = new Date(start)
+  // Render whole weeks (through Saturday of the current week) for a clean grid.
+  const end = new Date(today)
+  end.setDate(end.getDate() + (6 - end.getDay()))
+  while (d <= end) {
+    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+    const words = byDay.get(key) ?? 0
+    cells.push({ date: key, words, level: heatLevel(words), future: d > today })
+    d.setDate(d.getDate() + 1)
+  }
+  return cells
+}

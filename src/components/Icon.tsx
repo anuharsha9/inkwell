@@ -34,8 +34,26 @@ export type IconName =
   | 'home'
   | 'chart'
   | 'book'
+  | 'focus'
+  | 'compress'
 
 const P: Record<IconName, JSX.Element> = {
+  focus: (
+    <>
+      <path d="M4 8.5V5.5A1.5 1.5 0 0 1 5.5 4h3" />
+      <path d="M15.5 4h3A1.5 1.5 0 0 1 20 5.5v3" />
+      <path d="M20 15.5v3a1.5 1.5 0 0 1-1.5 1.5h-3" />
+      <path d="M8.5 20h-3A1.5 1.5 0 0 1 4 18.5v-3" />
+    </>
+  ),
+  compress: (
+    <>
+      <path d="M8.5 4v3A1.5 1.5 0 0 1 7 8.5H4" />
+      <path d="M20 7h-3A1.5 1.5 0 0 1 15.5 5.5V4" />
+      <path d="M4 15.5h3A1.5 1.5 0 0 1 8.5 17v3" />
+      <path d="M15.5 20v-3a1.5 1.5 0 0 1 1.5-1.5h3" />
+    </>
+  ),
   archive: (
     <>
       <rect x="3.5" y="4.5" width="17" height="4" rx="1.2" />
@@ -143,9 +161,11 @@ const P: Record<IconName, JSX.Element> = {
     </>
   ),
   pen: (
+    // A fountain pen — Inkwell's signature "write" glyph: slim body, collar, nib slit.
     <>
-      <path d="M4 20l1-4L16 5l3 3L8 19l-4 1Z" />
-      <path d="m14 7 3 3" />
+      <path d="M4.4 19.6 5.7 15 15 5.7a2.1 2.1 0 0 1 3 3L8.7 18l-4.3 1.6Z" />
+      <path d="m12.9 7.8 3.1 3.1" />
+      <path d="m6.1 16.4 1.4 1.4" />
     </>
   ),
   arrowLeft: <path d="M19 12H5M11 6l-6 6 6 6" />,
@@ -210,7 +230,7 @@ interface Props {
   strokeWidth?: number
 }
 
-export function Icon({ name, size = 20, className, style, strokeWidth = 1.6 }: Props) {
+export function Icon({ name, size = 20, className, style, strokeWidth = 1.75 }: Props) {
   return (
     <svg
       width={size}

@@ -9,6 +9,7 @@ import { useToast } from '@/components/ui'
 import { corpusInsight, isAIConfigured, isAIDisabledByGovernance } from '@/lib/ai'
 import { analyze } from '@/lib/textmetrics'
 import { activeSources } from '@/data/sources'
+import { AnimatedNumber } from '@/components/AnimatedNumber'
 
 export function Home() {
   return (
@@ -221,15 +222,15 @@ function InsightCard() {
       {pieces > 0 ? (
         <div className="home-stats">
           <div className="home-stat">
-            <span className="num">{totalWords.toLocaleString()}</span>
+            <span className="num"><AnimatedNumber value={totalWords} /></span>
             <span className="lbl">words written</span>
           </div>
           <div className="home-stat">
-            <span className="num">{avgEase}</span>
+            <span className="num"><AnimatedNumber value={avgEase} /></span>
             <span className="lbl">avg reading ease</span>
           </div>
           <div className="home-stat">
-            <span className="num">±{avgRhythm}</span>
+            <span className="num">±<AnimatedNumber value={avgRhythm} decimals={1} /></span>
             <span className="lbl">sentence variety</span>
           </div>
         </div>
@@ -294,15 +295,15 @@ function Momentum() {
     <button className="momentum" onClick={() => setView('craft')} title="Open Writing Craft">
       <div className="momentum-stat">
         <Icon name="spark" size={16} />
-        <span className="m-num">{streak}</span>
+        <span className="m-num"><AnimatedNumber value={streak} /></span>
         <span className="m-lbl">day{streak === 1 ? '' : 's'} writing</span>
       </div>
       <div className="momentum-stat">
-        <span className="m-num">{weekWords.toLocaleString()}</span>
+        <span className="m-num"><AnimatedNumber value={weekWords} /></span>
         <span className="m-lbl">words this week</span>
       </div>
       <div className="momentum-stat">
-        <span className="m-num">{published}</span>
+        <span className="m-num"><AnimatedNumber value={published} /></span>
         <span className="m-lbl">published</span>
       </div>
       <span className="momentum-link">

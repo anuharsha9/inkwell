@@ -51,6 +51,8 @@ interface InkState {
   filters: Filters
   saveState: SaveState
   newDialog: NewArticleDialog
+  // Bumps each time a piece is marked published — drives the "shipped" flourish.
+  publishTick: number
 
   // lifecycle
   init: () => Promise<void>
@@ -172,6 +174,7 @@ export const useStore = create<InkState>((set, get) => {
     filters: EMPTY_FILTERS,
     saveState: 'idle',
     newDialog: { open: false, format: 'article', scheduledFor: '' },
+    publishTick: 0,
 
     async init() {
       await db.ensureSeeded()
@@ -341,6 +344,7 @@ export const useStore = create<InkState>((set, get) => {
       if (status === 'published') {
         if (!prev.publishedAt) patch.publishedAt = nowISO()
         patch.scheduledFor = null // its plan slot is done
+        if (prev.status !== 'published') set((s) => ({ publishTick: s.publishTick + 1 }))
       }
       // Alt text required before "ready" — but never block her: backfill the
       // cover's alt from the title if she left it empty (PRD §5.5).
@@ -377,6 +381,7 @@ export const useStore = create<InkState>((set, get) => {
       if (!prev) return
       const patch: Partial<Article> = { status: 'published', publishedAt: prev.publishedAt ?? nowISO(), scheduledFor: null }
       if (platforms) patch.platforms = platforms
+      if (prev.status !== 'published') set((s) => ({ publishTick: s.publishTick + 1 }))
       get().updateArticle(id, patch, { immediate: true })
     },
 

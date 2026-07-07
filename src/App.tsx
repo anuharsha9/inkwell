@@ -13,6 +13,7 @@ import { Sources } from './views/Sources'
 import { Settings } from './views/Settings'
 import { TourController } from './components/tour/TourController'
 import { NewArticleDialog } from './components/NewArticleDialog'
+import { Celebration } from './components/Celebration'
 import { applyAccent, clearAccent } from './lib/accent'
 
 export function App() {
@@ -47,7 +48,7 @@ export function App() {
           {view === 'editor' ? (
             <Editor />
           ) : (
-            <div className="page">
+            <div className="page view-fade" key={view}>
               {view === 'home' && <Home />}
               {view === 'learn' && <Learn />}
               {view === 'archive' && <Archive />}
@@ -63,6 +64,7 @@ export function App() {
       <TabBar />
       <Toaster />
       <NewArticleDialog />
+      <Celebration />
       <TourController />
     </div>
   )

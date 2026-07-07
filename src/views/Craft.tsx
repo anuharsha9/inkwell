@@ -4,6 +4,8 @@ import { analyzeCorpus } from '@/lib/craft'
 import { easeLabel } from '@/lib/textmetrics'
 import { Icon } from '@/components/Icon'
 import { Markdown } from '@/components/editor/Markdown'
+import { AnimatedNumber } from '@/components/AnimatedNumber'
+import { Heatmap } from '@/components/Heatmap'
 import { corpusInsight, isAIConfigured } from '@/lib/ai'
 
 export function Craft() {
@@ -62,9 +64,9 @@ export function Craft() {
           {/* Headline numbers across the corpus */}
           <div className="craft-stats" data-tour="craft-stats">
             <Stat num={report.pieces} label="pieces with substance" />
-            <Stat num={report.totalWords.toLocaleString()} label="words written" />
-            <Stat num={report.avg.readingEase} label="avg reading ease" sub={easeLabel(report.avg.readingEase)} />
-            <Stat num={`±${report.avg.rhythm}`} label="sentence variety" />
+            <Stat num={report.totalWords} label="words written" />
+            <Stat num={report.avg.readingEase} decimals={1} label="avg reading ease" sub={easeLabel(report.avg.readingEase)} />
+            <Stat num={report.avg.rhythm} decimals={1} prefix="±" label="sentence variety" />
           </div>
 
           {/* Narrative read of her voice — persisted, renders without the API */}
@@ -129,6 +131,14 @@ export function Craft() {
             )}
           </section>
 
+          {/* Writing consistency — the habit goal, made visible */}
+          <section className="craft-section">
+            <h2 className="craft-h2">
+              <Icon name="calendar" size={17} /> Your writing days
+            </h2>
+            <Heatmap articles={Object.values(articles)} />
+          </section>
+
           {/* Growth over time */}
           {report.trend.length >= 2 && (
             <section className="craft-section">
@@ -137,9 +147,9 @@ export function Craft() {
                 {report.trend.map((m) => {
                   const max = Math.max(...report.trend.map((x) => x.words), 1)
                   return (
-                    <div className="trend-col" key={m.label}>
+                    <div className="trend-col" key={m.label} title={`${m.label} · ${m.words.toLocaleString()} words`}>
                       <div className="trend-bar-wrap">
-                        <div className="trend-bar" style={{ height: `${Math.round((m.words / max) * 100)}%` }} />
+                        <div className="trend-bar" style={{ height: `${Math.max(3, Math.round((m.words / max) * 100))}%` }} />
                       </div>
                       <div className="trend-words">{m.words.toLocaleString()}w</div>
                       <div className="trend-label">{m.label}</div>
@@ -196,10 +206,31 @@ export function Craft() {
   )
 }
 
-function Stat({ num, label, sub }: { num: number | string; label: string; sub?: string }) {
+function Stat({
+  num,
+  label,
+  sub,
+  decimals = 0,
+  prefix = '',
+}: {
+  num: number | string
+  label: string
+  sub?: string
+  decimals?: number
+  prefix?: string
+}) {
   return (
     <div className="craft-stat">
-      <span className="num">{num}</span>
+      <span className="num">
+        {typeof num === 'number' ? (
+          <>
+            {prefix}
+            <AnimatedNumber value={num} decimals={decimals} />
+          </>
+        ) : (
+          num
+        )}
+      </span>
       <span className="lbl">{label}</span>
       {sub && <span className="sub">{sub}</span>}
     </div>

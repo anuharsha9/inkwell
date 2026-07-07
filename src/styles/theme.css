@@ -45,7 +45,9 @@
   --shadow-sm: 0 1px 2px rgba(40, 34, 24, 0.04), 0 1px 3px rgba(40, 34, 24, 0.05);
   --shadow-md: 0 2px 6px rgba(40, 34, 24, 0.05), 0 6px 18px rgba(40, 34, 24, 0.07);
   --shadow-lg: 0 8px 24px rgba(40, 34, 24, 0.1), 0 18px 48px rgba(40, 34, 24, 0.12);
-  --shadow-accent: 0 4px 14px color-mix(in srgb, var(--accent) 28%, transparent);
+  /* No accent glow — flat lavender fills read cleaner. Kept as a no-op (not
+     removed) so the shadow lists that reference it stay valid. */
+  --shadow-accent: 0 0 0 0 transparent;
 
   /* ── Status colors — muted, considered (PRD §7) ─────────────────────── */
   --status-idea: #97917f; /* faded pencil */
@@ -62,9 +64,24 @@
 
   --ease: cubic-bezier(0.4, 0.1, 0.2, 1);
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-spring: cubic-bezier(0.34, 1.4, 0.5, 1); /* gentle overshoot for lifts */
   --t-fast: 120ms;
   --t-med: 200ms;
   --t-slow: 340ms;
+
+  /* ── Elevation & light (premium depth pass) ─────────────────────────────
+     --edge-light  → a faint top inner highlight so surfaces catch light.
+     --elev-*      → layered ambient shadows (contact + soft spread).
+     --surface-lit → the same surface with a subtle lit-from-above gradient.
+     --app-bg      → the page ground, with atmosphere (never a dead flat fill).
+     Light theme keeps these near-flat (paper); dark theme is where they sing. */
+  --edge-light: inset 0 1px 0 0 rgba(255, 255, 255, 0.5);
+  --edge-light-hover: inset 0 1px 0 0 rgba(255, 255, 255, 0.7);
+  --elev-1: 0 1px 2px rgba(40, 34, 24, 0.05), 0 4px 10px rgba(40, 34, 24, 0.06);
+  --elev-2: 0 2px 6px rgba(40, 34, 24, 0.07), 0 14px 30px rgba(40, 34, 24, 0.1);
+  --elev-3: 0 8px 24px rgba(40, 34, 24, 0.12), 0 26px 56px rgba(40, 34, 24, 0.16);
+  --surface-lit: linear-gradient(180deg, color-mix(in srgb, var(--surface), #fff 45%) 0%, var(--surface) 60%);
+  --app-bg: var(--canvas);
 
   --maxw: 1200px;
   --rail: 232px; /* left nav rail width */
@@ -89,6 +106,19 @@
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
   --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.44), 0 8px 22px rgba(0, 0, 0, 0.38);
   --shadow-lg: 0 10px 30px rgba(0, 0, 0, 0.56), 0 22px 56px rgba(0, 0, 0, 0.5);
+
+  /* Depth pass — on near-black, elevation reads through a lit top edge + soft
+     ambient shadow together. The edge highlight is the key premium ingredient. */
+  --edge-light: inset 0 1px 0 0 rgba(255, 255, 255, 0.055);
+  --edge-light-hover: inset 0 1px 0 0 rgba(255, 255, 255, 0.1);
+  --elev-1: 0 1px 2px rgba(0, 0, 0, 0.5), 0 4px 12px rgba(0, 0, 0, 0.35);
+  --elev-2: 0 4px 14px rgba(0, 0, 0, 0.5), 0 16px 40px rgba(0, 0, 0, 0.5);
+  --elev-3: 0 12px 32px rgba(0, 0, 0, 0.6), 0 32px 70px rgba(0, 0, 0, 0.6);
+  --surface-lit: linear-gradient(180deg, color-mix(in srgb, var(--surface), #fff 4.5%) 0%, var(--surface) 62%);
+  /* Atmosphere: a cool glow from above + a soft floor vignette. No grain (keeps
+     the Moleskine "no texture" rule) — depth comes from light, not noise. */
+  --app-bg: radial-gradient(125% 85% at 50% -12%, rgba(120, 128, 210, 0.07), transparent 55%),
+    radial-gradient(100% 120% at 50% 118%, rgba(0, 0, 0, 0.45), transparent 60%), var(--canvas);
 
   /* Split accent: light lavender for TEXT on black; deep indigo for FILLS so
      white button text passes contrast (WCAG AA). */
@@ -123,7 +153,8 @@ body,
 body {
   margin: 0;
   font-family: var(--font-ui);
-  background: var(--canvas);
+  background: var(--app-bg);
+  background-attachment: fixed;
   color: var(--ink);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
