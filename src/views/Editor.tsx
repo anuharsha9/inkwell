@@ -1,4 +1,5 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { useStore } from '@/store'
 import { Icon } from '@/components/Icon'
 import { Menu, MenuItem } from '@/components/Menu'
@@ -41,6 +42,13 @@ export function Editor() {
   const [coachTab, setCoachTab] = useState<'improve' | 'checks'>('improve')
   // Focus mode — hides all chrome (rail, panels, bar) for a distraction-free page.
   const [focus, setFocus] = useState(false)
+  const [writingFont, setWritingFontState] = useState<string>(() =>
+    localStorage.getItem('inkwell:writing-font') || 'serif'
+  )
+  const setWritingFont = (f: string) => {
+    setWritingFontState(f)
+    localStorage.setItem('inkwell:writing-font', f)
+  }
   const bodyRef = useRef<HTMLTextAreaElement>(null)
 
   // Words written in this sitting — captured when a piece opens, so it counts
@@ -71,13 +79,19 @@ export function Editor() {
     return () => window.removeEventListener('keydown', onKey)
   }, [focus])
 
-  // The writing canvas grows with the text — no inner scrollbar, no dead zone
-  // below a cut-off box; the page itself scrolls.
   useLayoutEffect(() => {
     const ta = bodyRef.current
     if (!ta) return
-    ta.style.height = 'auto'
+    const scrollers: [Element, number][] = []
+    let el: Element | null = ta
+    while ((el = el.parentElement)) {
+      if (el.scrollTop > 0) scrollers.push([el, el.scrollTop])
+    }
+    const wy = window.scrollY
+    ta.style.height = '0'
     ta.style.height = `${ta.scrollHeight}px`
+    for (const [s, t] of scrollers) s.scrollTop = t
+    window.scrollTo(0, wy)
   }, [article?.body, activeId])
 
   if (!activeId || !article) {
@@ -109,6 +123,53 @@ export function Editor() {
     })
   }
 
+  function wrapSelection(before: string, after: string) {
+    const ta = bodyRef.current
+    if (!ta) return
+    const body = article!.body
+    const start = ta.selectionStart
+    const end = ta.selectionEnd
+    const selected = body.slice(start, end)
+    const replacement = selected ? `${before}${selected}${after}` : `${before}text${after}`
+    const next = body.slice(0, start) + replacement + body.slice(end)
+    updateArticle(article!.id, { body: next })
+    requestAnimationFrame(() => {
+      ta.focus()
+      const selStart = start + before.length
+      const selEnd = selected ? selStart + selected.length : selStart + 4
+      ta.setSelectionRange(selStart, selEnd)
+    })
+  }
+
+  function prefixLine(marker: string) {
+    const ta = bodyRef.current
+    if (!ta) return
+    const body = article!.body
+    const start = ta.selectionStart
+    const lineStart = body.lastIndexOf('\n', start - 1) + 1
+    const next = body.slice(0, lineStart) + marker + body.slice(lineStart)
+    updateArticle(article!.id, { body: next })
+    requestAnimationFrame(() => {
+      ta.focus()
+      ta.setSelectionRange(start + marker.length, start + marker.length)
+    })
+  }
+
+  function insertBlock(text: string) {
+    const ta = bodyRef.current
+    if (!ta) return
+    const body = article!.body
+    const start = ta.selectionStart
+    const pad = start > 0 && body[start - 1] !== '\n' ? '\n' : ''
+    const next = body.slice(0, start) + pad + text + body.slice(start)
+    updateArticle(article!.id, { body: next })
+    requestAnimationFrame(() => {
+      ta.focus()
+      const pos = start + pad.length + text.length
+      ta.setSelectionRange(pos, pos)
+    })
+  }
+
   const targets = article.platforms.length ? article.platforms : PLATFORM_ORDER
   const privacyCount = localPrivacyScan(article.body, settings.privacyTerms).length
 
@@ -119,7 +180,7 @@ export function Editor() {
   }
 
   return (
-    <div className={`editor ${focus ? 'focus-mode' : ''}`}>
+    <div className={`editor ${focus ? 'focus-mode' : ''} ${coachOpen || historyOpen ? 'drawer-open' : ''}`}>
       {/* Distraction-free: a quiet way back out when all chrome is hidden. */}
       {focus && (
         <button className="focus-exit" onClick={() => setFocus(false)} title="Leave focus mode (Esc)">
@@ -233,12 +294,48 @@ export function Editor() {
                 placeholder="The hook — your editorial angle in one line"
                 onChange={(e) => updateArticle(article.id, { hook: e.target.value })}
               />
+              <div className="format-bar">
+                <button className="fmt-btn fmt-bold" title="Bold (⌘B)" onMouseDown={(e) => { e.preventDefault(); wrapSelection('**', '**') }}>B</button>
+                <button className="fmt-btn fmt-italic" title="Italic (⌘I)" onMouseDown={(e) => { e.preventDefault(); wrapSelection('*', '*') }}>I</button>
+                <span className="fmt-sep" />
+                <button className="fmt-btn" title="Heading" onMouseDown={(e) => { e.preventDefault(); prefixLine('## ') }}>H2</button>
+                <button className="fmt-btn" title="Subheading" onMouseDown={(e) => { e.preventDefault(); prefixLine('### ') }}>H3</button>
+                <span className="fmt-sep" />
+                <button className="fmt-btn" title="Bullet list" onMouseDown={(e) => { e.preventDefault(); prefixLine('- ') }}>
+                  <Icon name="sources" size={15} />
+                </button>
+                <button className="fmt-btn" title="Numbered list" onMouseDown={(e) => { e.preventDefault(); prefixLine('1. ') }}>1.</button>
+                <button className="fmt-btn" title="Quote" onMouseDown={(e) => { e.preventDefault(); prefixLine('> ') }}>"</button>
+                <span className="fmt-sep" />
+                <button className="fmt-btn" title="Link" onMouseDown={(e) => { e.preventDefault(); wrapSelection('[', '](url)') }}>
+                  <Icon name="link" size={15} />
+                </button>
+                <button className="fmt-btn" title="Inline code" onMouseDown={(e) => { e.preventDefault(); wrapSelection('`', '`') }}>&lt;/&gt;</button>
+                <button className="fmt-btn" title="Horizontal rule" onMouseDown={(e) => { e.preventDefault(); insertBlock('\n---\n') }}>—</button>
+                <span className="fmt-spacer" />
+                <div className="font-picker">
+                  <button className={`fmt-btn font-opt${writingFont === 'serif' ? ' active' : ''}`} title="Serif (Newsreader)" onMouseDown={(e) => { e.preventDefault(); setWritingFont('serif') }}>
+                    <span style={{ fontFamily: 'Newsreader, Georgia, serif' }}>Aa</span>
+                  </button>
+                  <button className={`fmt-btn font-opt${writingFont === 'sans' ? ' active' : ''}`} title="Sans (Inter)" onMouseDown={(e) => { e.preventDefault(); setWritingFont('sans') }}>
+                    <span style={{ fontFamily: 'Inter, system-ui, sans-serif' }}>Aa</span>
+                  </button>
+                  <button className={`fmt-btn font-opt${writingFont === 'mono' ? ' active' : ''}`} title="Mono (IBM Plex Mono)" onMouseDown={(e) => { e.preventDefault(); setWritingFont('mono') }}>
+                    <span style={{ fontFamily: 'IBM Plex Mono, monospace', fontSize: '12px' }}>Aa</span>
+                  </button>
+                </div>
+              </div>
               <textarea
                 ref={bodyRef}
-                className="body-input"
+                className={`body-input font-${writingFont}`}
                 value={article.body}
                 placeholder="Start writing. Markdown welcome. Everything autosaves — you can't lose this."
                 onChange={(e) => updateArticle(article.id, { body: e.target.value })}
+                onKeyDown={(e) => {
+                  if (e.metaKey && e.key === 'b') { e.preventDefault(); wrapSelection('**', '**') }
+                  if (e.metaKey && e.key === 'i') { e.preventDefault(); wrapSelection('*', '*') }
+                  if (e.metaKey && e.key === 'k') { e.preventDefault(); wrapSelection('[', '](url)') }
+                }}
                 spellCheck
               />
             </div>
@@ -260,18 +357,20 @@ export function Editor() {
         <MetaPanel article={article} onInsert={insertAtCursor} />
       </div>
 
-      {coachOpen && (
+      {coachOpen && createPortal(
         <>
           <div className="coach-scrim" onClick={() => setCoachOpen(false)} />
           <Coach key={coachTab} article={article} onClose={() => setCoachOpen(false)} initialTab={coachTab} />
-        </>
+        </>,
+        document.documentElement
       )}
 
-      {historyOpen && (
+      {historyOpen && createPortal(
         <>
           <div className="coach-scrim" onClick={() => setHistoryOpen(false)} />
           <History article={article} onClose={() => setHistoryOpen(false)} />
-        </>
+        </>,
+        document.documentElement
       )}
 
       {/* ── Delete confirm ────────────────────────────────────────── */}

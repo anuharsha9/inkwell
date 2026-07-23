@@ -1,5 +1,6 @@
 import type { Tag } from '@/types'
 import { DEMO_MODE } from '@/lib/env'
+import { TRANSCRIPTS_AVAILABLE, getTranscripts, type TranscriptDoc } from '@/lib/transcripts'
 
 // ─────────────────────────────────────────────────────────────────────────
 // Source Material — article ideas grounded in Anuja's REAL body of work
@@ -14,7 +15,7 @@ import { DEMO_MODE } from '@/lib/env'
 // notes so the source link survives.
 // ─────────────────────────────────────────────────────────────────────────
 
-export type SourceKind = 'casestudy' | 'app' | 'career' | 'writing'
+export type SourceKind = 'casestudy' | 'app' | 'career' | 'writing' | 'transcript'
 
 export interface Suggestion {
   title: string
@@ -28,6 +29,7 @@ export interface Source {
   name: string
   blurb: string
   meta?: string // where it lives / what it is
+  slug?: string // for transcript sources: the confidential doc it maps to
   suggestions: Suggestion[]
 }
 
@@ -36,6 +38,7 @@ export const SOURCE_KIND_LABEL: Record<SourceKind, string> = {
   app: 'App / PRD',
   career: 'Career & life',
   writing: 'Existing writing',
+  transcript: 'Meeting transcript',
 }
 
 export const SOURCES: Source[] = [
@@ -46,7 +49,7 @@ export const SOURCES: Source[] = [
     name: 'ReportCaster',
     meta: 'WebFOCUS · scheduling engine · shipped Apr 2024',
     blurb:
-      'A 40-year-old scheduling engine with zero documentation, 20M+ jobs/week, and customers threatening to leave. You volunteered in week one and shipped a reframe that renewed a multi-million-dollar account.',
+      'A decades-old scheduling engine with no documentation, running millions of jobs a week, and customers threatening to leave over its state. You were the first designer ever to modernize it — a reframe that stabilized retention without breaking a single legacy schedule type.',
     suggestions: [
       {
         title: 'The Two Designs I Threw Away',
@@ -55,7 +58,7 @@ export const SOURCES: Source[] = [
       },
       {
         title: 'Natural Language Was the Whole Unlock',
-        hook: '"Runs Monday–Friday at 6 PM, weekly." The moment a 40-year-old engine started speaking like a person was the moment it became usable.',
+        hook: '"Runs Monday–Friday at 6 PM, weekly." The moment a decades-old engine started speaking like a person was the moment it became usable.',
         tags: ['technical', 'process'],
       },
       {
@@ -71,7 +74,7 @@ export const SOURCES: Source[] = [
     name: 'ML Functions',
     meta: 'WebFOCUS · ML UX · "best screen in the revamp"',
     blurb:
-      'Designing machine-learning UX with zero ML background. You self-funded a $3,000 MIT AI/ML certificate, embedded with a Principal Data Scientist for six months, and built a dual-mode flow 5/5 SMEs finished unassisted.',
+      'Designing machine-learning UX with zero ML background. You self-funded a $3,000 MIT AI/ML certificate, embedded with a Principal Data Scientist for six months, and built a dual-mode flow 4 SMEs finished unassisted.',
     suggestions: [
       {
         title: 'I Paid $3,000 to Earn the Vocabulary',
@@ -153,7 +156,7 @@ export const SOURCES: Source[] = [
     name: 'WealthEngine',
     meta: 'finance-app · local-first life-decision engine · live demo at wealthengine.anujaharsha.com',
     blurb:
-      'A multi-currency household financial OS built on six years of real transactions. It answers "what do I really spend, what\'s my true net worth in USD and INR, and which life path gets me to ₹70 crore?" Now public as a fictional-persona demo.',
+      'A multi-currency household financial OS built on six years of real transactions. It answers "what do I really spend, what\'s my true net worth in USD and INR, and which life path actually gets me to my long-term number?" Now public as a fictional-persona demo.',
     suggestions: [
       {
         title: 'How to Publish a Finance App Without Publishing Your Finances',
@@ -172,7 +175,7 @@ export const SOURCES: Source[] = [
       },
       {
         title: "You Can't Compound Rupees Like Dollars",
-        hook: 'Native-currency growth, then FX depreciation to reconcile. The ₹70-crore goal quietly breaks the moment you treat the two currencies as one.',
+        hook: 'Native-currency growth, then FX depreciation to reconcile. A long-term rupee goal quietly breaks the moment you treat the two currencies as one.',
         tags: ['live', 'technical'],
       },
     ],
@@ -181,9 +184,9 @@ export const SOURCES: Source[] = [
     id: 'sous',
     kind: 'app',
     name: 'Sous',
-    meta: 'cooking-app · voice-first AI cooking companion · TestFlight build 4, App Store next',
+    meta: 'cooking-app · voice-first AI cooking companion · App Store launch imminent',
     blurb:
-      'A hands-free kitchen companion where voice guides you step by step, recipes import from any source, and a state machine — not the LLM — keeps it safe. Now on TestFlight with on-device "Hey Sous" wake words; shipping free on the App Store.',
+      'A hands-free kitchen companion where voice guides you step by step, recipes import from any source, and a state machine — not the LLM — keeps it safe. On-device "Hey Sous" wake words, no server. Shipping free on the App Store shortly.',
     suggestions: [
       {
         title: '"Hey Sous" Without a Server: Wake Words From Apple\'s Own Speech Engine',
@@ -283,6 +286,41 @@ export const SOURCES: Source[] = [
     ],
   },
   {
+    id: 'mind-site',
+    kind: 'app',
+    name: 'The Mind Site',
+    meta: 'mind-anujaharsha · a creative portfolio you walk through · in progress, not public yet',
+    blurb:
+      'A separate artist site from anujaharsha.com — one thesis six ways ("I make things: with hands, words, heat, code"). The hand-drawn gear-brain is the front door, the navigation, and the concept statement: a quiz lights the brain up, and the settled brain becomes six wings — paint, write, cook, build, design, am. An awwwards SOTD candidate, still being built; nothing public until it clears the craft bar.',
+    suggestions: [
+      {
+        title: 'A Portfolio That\'s a Mind You Walk Through',
+        hook: 'Not sections — wings. The quiz you answer builds the navigation, and the navigation is a brain. Concept and mechanism are the same object. Why I\'m building a site that seduces instead of one that convinces.',
+        tags: ['live', 'process', 'human'],
+      },
+      {
+        title: 'The Palette Was Extracted, Not Invented',
+        hook: 'Every design token is sampled from the hand-drawn brain SVG — its gear metals, synapse glow, background — so the whole site feels grown from the artwork instead of dropped on top of it.',
+        tags: ['live', 'technical', 'process'],
+      },
+      {
+        title: 'One Signature Moment Per Wing — and Nothing Else',
+        hook: 'The settle moment, light-raking a canvas, Devanagari that draws itself. Each wing gets exactly one orchestrated interaction; everything else stays quiet. The Chanel rule: remove one accessory before you ship.',
+        tags: ['live', 'process'],
+      },
+      {
+        title: 'The Dark-Gear Rule: Ship Unlit Before You Ship at 70%',
+        hook: 'A wing that misses the craft bar ships as an unlit gear that wakes on release — not a half-polished room. Juries, and users, punish unevenness harder than absence.',
+        tags: ['process', 'technical'],
+      },
+      {
+        title: 'The Making-Of Is the Content',
+        hook: 'Concept prompted into a first render in my own words, then every gear, gradient, and synapse drawn by hand and built across parallel AI coding sessions. On a site about making things, showing the making is the point.',
+        tags: ['live', 'human', 'process'],
+      },
+    ],
+  },
+  {
     id: 'job-apply',
     kind: 'app',
     name: 'Profile Pack / job-apply',
@@ -313,8 +351,8 @@ export const SOURCES: Source[] = [
       'The career facts underneath everything: the system-archaeologist who walks into undocumented legacy and leaves it human, building across a cross-border life.',
     suggestions: [
       {
-        title: 'Building Six Apps on a Visa That Won\'t Let Me Earn',
-        hook: 'The honest piece about creating production work I legally can\'t monetize yet. The drive doesn\'t wait for permission.',
+        title: 'Building Four Apps on a Visa I Can\'t Monetize Yet',
+        hook: 'The honest piece about creating production work I legally can\'t monetize yet — H-4, work authorization pending. The drive doesn\'t wait for permission.',
         tags: ['live', 'human'],
       },
       {
@@ -341,7 +379,7 @@ export const SOURCES: Source[] = [
     suggestions: [
       {
         title: 'Delete the Adjective, Keep the Number',
-        hook: '"Innovative, cutting-edge, world-class" says nothing. "20M jobs a week, 75% fewer clicks" says everything. The edit that transformed my portfolio was subtraction.',
+        hook: '"Innovative, cutting-edge, world-class" says nothing. "Millions of jobs a week, four clicks down to one" says everything. The edit that transformed my portfolio was subtraction.',
         tags: ['existing', 'process'],
       },
       {
@@ -495,4 +533,46 @@ export const DEMO_SOURCES: Source[] = [
   },
 ]
 
-export const activeSources = (): Source[] => (DEMO_MODE ? DEMO_SOURCES : SOURCES)
+// Real, confidential meeting transcripts surfaced as sources — her voice only.
+// Loaded ONLY in her real build (the loader is DEMO-gated and the files are
+// gitignored, so the public build never sees them). Each becomes a card whose
+// angles draft in her voice, grounded in the multi-speaker discussion.
+function transcriptSources(): Source[] {
+  return getTranscripts().map((t) => ({
+    id: `transcript-${t.slug}`,
+    kind: 'transcript' as const,
+    name: t.title,
+    slug: t.slug,
+    meta: `Meeting transcript · ${Object.keys(t.speakers).length} speakers`,
+    blurb:
+      `A real multi-speaker meeting transcript with ${t.anujaTurns} of Anuja's turns. ` +
+      'Drafts pull the STORY from the full discussion but emulate only her voice — the other speakers are context, never imitated.',
+    suggestions: transcriptSuggestions(t),
+  }))
+}
+
+function transcriptSuggestions(t: TranscriptDoc): Suggestion[] {
+  const topic = t.title
+  return [
+    {
+      title: `What I Learned Shipping ${topic}`,
+      hook: `The real story behind ${topic}, pulled from the working meetings — the decisions, the trade-offs, and what actually moved it forward.`,
+      tags: ['technical', 'process'],
+    },
+    {
+      title: `The Decision Behind ${topic}`,
+      hook: `Inside the room where ${topic} got argued out: the constraint that forced the call, and why it held.`,
+      tags: ['process'],
+    },
+    {
+      title: `${topic}, In My Own Words`,
+      hook: `A first-person account of ${topic} — my reasoning, in my voice, drawn from what I actually said in the meetings.`,
+      tags: ['human', 'process'],
+    },
+  ]
+}
+
+export const activeSources = (): Source[] => {
+  if (DEMO_MODE) return DEMO_SOURCES
+  return TRANSCRIPTS_AVAILABLE ? [...SOURCES, ...transcriptSources()] : SOURCES
+}

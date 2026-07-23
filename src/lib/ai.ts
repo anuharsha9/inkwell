@@ -176,12 +176,27 @@ export async function runQuickAction(action: QuickAction, article: Article, s: S
 // in the article's brief (title + hook + source notes) and PROVEN against her
 // actual published writing — two real pieces ride along as voice exemplars so
 // the draft sounds like her, not like a model.
-export async function draftArticle(article: Article, exemplars: string[], s: Settings): Promise<string> {
+export async function draftArticle(
+  article: Article,
+  exemplars: string[],
+  s: Settings,
+  ctx?: { voice?: string; story?: string },
+): Promise<string> {
   const proof = exemplars
     .filter((t) => t.trim())
     .slice(0, 2)
     .map((t, i) => `--- HER PUBLISHED PIECE ${i + 1} (voice proof — match this register, do not reuse its content) ---\n${t.slice(0, 4500)}`)
     .join('\n\n')
+
+  // Optional grounding for transcript-backed pieces: the real multi-speaker
+  // discussion (facts/narrative only) and her verbatim turns (the ONLY voice
+  // to emulate — the other speakers must never leak into the draft).
+  const storyBlock = ctx?.story
+    ? `\n\n--- STORY CONTEXT (the real multi-speaker discussion behind this piece — comprehend it for facts and narrative ONLY; it contains several people's voices; DO NOT emulate anyone's phrasing but hers) ---\n${ctx.story.slice(0, 8000)}`
+    : ''
+  const voiceBlock = ctx?.voice
+    ? `\n\n--- HER OWN VOICE — verbatim from real meetings (match her directness, her first-principles phrasing, her plain-spoken technical confidence; adapt spoken cadence into clean written prose; this is the ONLY voice to emulate) ---\n${ctx.voice.slice(0, 8000)}`
+    : ''
 
   const isPost = article.format === 'post'
   const lengthRule = isPost
@@ -201,7 +216,7 @@ ${lengthRule}
 - This is HER first draft, not a finished showpiece: strong shape, real momentum, honest voice. It should feel like she wrote it fast on a good day.
 - Ground every claim in the brief and in what her voice-proof pieces establish about her real life and work. Where a specific (a number, a name, a date, an anecdote's detail) is needed but not provided, leave a [bracketed placeholder] — never invent.
 - Open the way she opens (no throat-clearing), close the way she closes (a line that lands). Match the rhythm, devices, and register of the voice-proof pieces.
-${proof ? `\n${proof}` : ''}`
+${proof ? `\n${proof}` : ''}${storyBlock}${voiceBlock}`
 
   return complete(s, systemPrompt(s, article), user, isPost ? 1200 : 4000)
 }

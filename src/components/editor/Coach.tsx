@@ -16,6 +16,7 @@ import {
   type Neighbor,
 } from '@/lib/embeddings'
 import { dueWords, type Grade } from '@/lib/srs'
+import { getTranscript, getVoiceCorpus } from '@/lib/transcripts'
 import { MetricsPanel } from '@/components/MetricsPanel'
 import {
   coachLesson,
@@ -154,7 +155,16 @@ function ImproveTab({ article }: { article: Article }) {
         .sort((a, b) => (b.publishedAt ?? '').localeCompare(a.publishedAt ?? ''))
         .slice(0, 2)
         .map((a) => a.body)
-      setDraft({ mode: 'replace', label: 'First draft', text: await draftArticle(article, exemplars, settings) })
+      // Transcript-backed pieces (notes tagged `Transcript: <slug>`) draft against
+      // the real multi-speaker discussion for facts + her voice corpus for tone.
+      const m = article.notes.match(/^Transcript:\s*(\S+)/)
+      const text = m
+        ? await draftArticle(article, exemplars, settings, {
+            voice: getVoiceCorpus(),
+            story: getTranscript(m[1]),
+          })
+        : await draftArticle(article, exemplars, settings)
+      setDraft({ mode: 'replace', label: 'First draft', text })
     } catch (e) {
       setError(errMsg(e))
     } finally {

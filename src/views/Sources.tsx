@@ -26,12 +26,18 @@ export function Sources() {
   const shown = kind === 'all' ? all : all.filter((s) => s.kind === kind)
 
   function add(source: Source, sg: Suggestion, open: boolean) {
+    // Transcript sources carry a slug so the draft step can load the real
+    // discussion + her voice corpus; other sources keep the human-readable note.
+    const notes =
+      source.kind === 'transcript' && source.slug
+        ? `Transcript: ${source.slug}`
+        : `Source: ${source.name}${source.meta ? ` — ${source.meta}` : ''}`
     const id = createIdeaFrom(
       {
         title: sg.title,
         hook: sg.hook,
         tags: sg.tags,
-        notes: `Source: ${source.name}${source.meta ? ` — ${source.meta}` : ''}`,
+        notes,
       },
       { open },
     )

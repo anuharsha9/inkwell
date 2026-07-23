@@ -24,5 +24,8 @@ release
 # her actual writing — saved locally, never pushed (remove this line to back it up to git)
 articles/
 
+# confidential work transcripts
+transcripts.local/
+
 # build info
 *.tsbuildinfo

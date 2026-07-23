@@ -1,7 +1,6 @@
-import { useEffect, useRef, useState, type ReactNode } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react'
+import { createPortal } from 'react-dom'
 
-// A light anchored popover. Closes on outside click / Escape. Positioned just
-// below its trigger. Used for inline status changes, platform pickers, etc.
 export function Menu({
   trigger,
   children,
@@ -14,12 +13,28 @@ export function Menu({
   width?: number
 }) {
   const [open, setOpen] = useState(false)
-  const ref = useRef<HTMLDivElement>(null)
+  const anchorRef = useRef<HTMLDivElement>(null)
+  const popRef = useRef<HTMLDivElement>(null)
+  const [pos, setPos] = useState<{ top: number; left: number } | null>(null)
+
+  useLayoutEffect(() => {
+    if (!open || !anchorRef.current) return
+    const rect = anchorRef.current.getBoundingClientRect()
+    setPos({
+      top: rect.bottom + 6,
+      left: align === 'right' ? rect.right : rect.left,
+    })
+  }, [open, align])
 
   useEffect(() => {
     if (!open) return
     const onDown = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
+      if (
+        anchorRef.current?.contains(e.target as Node) ||
+        popRef.current?.contains(e.target as Node)
+      )
+        return
+      setOpen(false)
     }
     const onKey = (e: KeyboardEvent) => e.key === 'Escape' && setOpen(false)
     document.addEventListener('mousedown', onDown)
@@ -37,13 +52,25 @@ export function Menu({
   }
 
   return (
-    <div className="menu-anchor" ref={ref}>
+    <div className="menu-anchor" ref={anchorRef}>
       {trigger(open, toggle)}
-      {open && (
-        <div className={`menu-pop ${align}`} style={width ? { width } : undefined} role="menu">
-          {children(() => setOpen(false))}
-        </div>
-      )}
+      {open &&
+        pos &&
+        createPortal(
+          <div
+            className={`menu-pop ${align}`}
+            ref={popRef}
+            style={{
+              top: pos.top,
+              ...(align === 'right' ? { right: window.innerWidth - pos.left } : { left: pos.left }),
+              ...(width ? { width } : {}),
+            }}
+            role="menu"
+          >
+            {children(() => setOpen(false))}
+          </div>,
+          document.documentElement,
+        )}
     </div>
   )
 }

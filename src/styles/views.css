@@ -16,23 +16,19 @@
   display: inline-flex;
 }
 .menu-pop {
-  position: absolute;
-  top: calc(100% + 6px);
-  z-index: 40;
+  position: fixed;
+  z-index: 70;
   min-width: 150px;
   padding: 6px;
   background: var(--surface);
   border-radius: var(--r-md);
   box-shadow: var(--edge-light), var(--elev-3);
-  transform-origin: top center;
   animation: menu-in var(--t-med) var(--ease-spring);
 }
 .menu-pop.left {
-  left: 0;
   transform-origin: top left;
 }
 .menu-pop.right {
-  right: 0;
   transform-origin: top right;
 }
 @keyframes menu-in {
@@ -1447,6 +1443,83 @@
 .hook-input::placeholder {
   font-style: italic;
 }
+
+/* ── Format bar ─────────────────────────────────────────── */
+.format-bar {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 4px 0;
+  margin-bottom: 10px;
+  border-bottom: 1px solid var(--line);
+  flex-wrap: wrap;
+}
+.fmt-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 30px;
+  height: 28px;
+  padding: 0 6px;
+  border: none;
+  border-radius: 4px;
+  background: none;
+  color: var(--ink-soft);
+  font-family: var(--font-ui);
+  font-size: 13px;
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s;
+}
+.fmt-btn:hover {
+  background: var(--surface-hover);
+  color: var(--ink);
+}
+.fmt-btn:active {
+  background: var(--accent-tint);
+  color: var(--accent);
+}
+.fmt-bold {
+  font-weight: 700;
+}
+.fmt-italic {
+  font-style: italic;
+  font-family: var(--font-read);
+}
+.fmt-sep {
+  width: 1px;
+  height: 16px;
+  background: var(--line);
+  margin: 0 4px;
+  flex-shrink: 0;
+}
+.fmt-spacer {
+  flex: 1;
+}
+.font-picker {
+  display: flex;
+  gap: 2px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 2px;
+}
+.font-opt {
+  min-width: 32px;
+  border-radius: 4px;
+  font-size: 13px;
+}
+.font-opt.active {
+  background: var(--accent-tint);
+  color: var(--accent);
+}
+.drawer-open .font-picker,
+.drawer-open .editor-bar-right {
+  visibility: hidden;
+}
+
+.body-input.font-serif { font-family: var(--font-read); }
+.body-input.font-sans  { font-family: var(--font-ui); }
+.body-input.font-mono  { font-family: var(--font-mono); font-size: 15px; line-height: 1.8; }
+
 .body-input {
   font-family: var(--font-read);
   font-size: 17px;
