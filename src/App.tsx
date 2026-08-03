@@ -13,6 +13,7 @@ import { Book } from './views/Book'
 import { Sources } from './views/Sources'
 import { Settings } from './views/Settings'
 import { TourController } from './components/tour/TourController'
+import { WardenAnalytics } from './components/WardenAnalytics'
 import { NewArticleDialog } from './components/NewArticleDialog'
 import { Celebration } from './components/Celebration'
 import { applyAccent, clearAccent } from './lib/accent'
@@ -96,6 +97,7 @@ export function App() {
       <NewArticleDialog />
       <Celebration />
       <TourController />
+      <WardenAnalytics />
     </div>
   )
 }
