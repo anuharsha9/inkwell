@@ -7,6 +7,7 @@ import { removeArticleFile, syncArticleFile } from '@/lib/localArchive'
 import { parseBackup, type Backup } from '@/lib/backup'
 import { reviewCard, type Grade } from '@/lib/srs'
 import { DEMO_MODE } from '@/lib/env'
+import { verifyPassphrase, loadUnlocked, setUnlockedFlag } from '@/lib/unlock'
 
 // ─────────────────────────────────────────────────────────────────────────
 // Inkwell store. In-memory state updates are synchronous (instant UI); writes
@@ -45,6 +46,9 @@ interface InkState {
   customSources: Source[]
   theme: Theme
 
+  // Personal-unlock gate: false = demo (personal features hidden), true = personal.
+  unlocked: boolean
+
   view: View
   activeId: string | null
   groupBy: GroupBy
@@ -56,6 +60,10 @@ interface InkState {
 
   // lifecycle
   init: () => Promise<void>
+
+  // personal unlock (gates Config Track, Book, Sources, live-AI)
+  unlock: (passphrase: string) => Promise<boolean>
+  lock: () => void
 
   // navigation
   setView: (view: View) => void
@@ -127,6 +135,37 @@ const lastSnapAt = new Map<string, number>()
 const AUTOSNAP_MS = 5 * 60 * 1000
 
 export const useStore = create<InkState>((set, get) => {
+  // Push the full backup to the dev server so ~/Documents/Inkwell/inkwell-backup.json
+  // (and its iCloud Drive mirror) stay current for the iPhone app to pull. Dev-only
+  // and best-effort: on the static Vercel demo the endpoint is absent and the fetch
+  // simply fails silently. Debounced so a burst of edits collapses into one write.
+  let backupTimer: ReturnType<typeof setTimeout> | null = null
+  function pushBackupDebounced() {
+    if (DEMO_MODE) return
+    if (backupTimer) clearTimeout(backupTimer)
+    backupTimer = setTimeout(() => {
+      backupTimer = null
+      const s = get()
+      const backup = {
+        app: 'inkwell',
+        version: 1,
+        exportedAt: new Date().toISOString(),
+        articles: Object.values(s.articles),
+        images: Object.values(s.images),
+        settings: { ...s.settings, aiApiKey: '', imageApiKey: '' }, // never write secrets
+        vocab: s.vocab,
+        customSources: s.customSources,
+      }
+      void fetch('/__inkwell/backup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(backup),
+      }).catch(() => {
+        /* endpoint absent (static demo) — ignore */
+      })
+    }, 1500)
+  }
+
   function persistArticleDebounced(id: string) {
     set({ saveState: 'saving' })
     const existing = pendingTimers.get(id)
@@ -141,6 +180,7 @@ export const useStore = create<InkState>((set, get) => {
           void syncArticleFile(a) // mirror to a real .md file in the project folder
         }
         set({ saveState: 'saved' })
+        pushBackupDebounced()
       }, 500),
     )
   }
@@ -157,6 +197,7 @@ export const useStore = create<InkState>((set, get) => {
       void syncArticleFile(a)
     }
     set({ saveState: 'saved' })
+    pushBackupDebounced()
   }
 
   return {
@@ -168,13 +209,32 @@ export const useStore = create<InkState>((set, get) => {
     customSources: [],
     theme: 'light',
 
-    view: DEMO_MODE ? 'learn' : 'home', // demo visitors land on the showcase first
+    unlocked: loadUnlocked(),
+    // Locked visitors land on the showcase (demo build) or home; personal views
+    // are never the entry point.
+    view: !loadUnlocked() && DEMO_MODE ? 'learn' : 'home',
     activeId: null,
     groupBy: 'phase',
     filters: EMPTY_FILTERS,
     saveState: 'idle',
     newDialog: { open: false, format: 'article', scheduledFor: '' },
     publishTick: 0,
+
+    async unlock(passphrase: string) {
+      const ok = await verifyPassphrase(passphrase)
+      if (ok) {
+        setUnlockedFlag(true)
+        set({ unlocked: true })
+      }
+      return ok
+    },
+
+    lock() {
+      setUnlockedFlag(false)
+      const v = get().view
+      const personal = v === 'config' || v === 'book' || v === 'sources'
+      set({ unlocked: false, ...(personal ? { view: 'home' as View } : {}) })
+    },
 
     async init() {
       await db.ensureSeeded()
@@ -300,6 +360,7 @@ export const useStore = create<InkState>((set, get) => {
         ...(opts?.open ? { view: 'editor' as View, activeId: id, saveState: 'saved' as SaveState } : {}),
       }))
       void db.putArticle(article)
+      pushBackupDebounced()
       return id
     },
 
@@ -407,6 +468,7 @@ export const useStore = create<InkState>((set, get) => {
       await db.deleteArticle(id)
       void db.deleteVersionsFor(id)
       void db.deleteEmbedding(id) // drop its cached semantic vector too
+      pushBackupDebounced()
     },
 
     addImage(img) {

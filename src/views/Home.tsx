@@ -52,6 +52,7 @@ function Pipeline() {
   const setView = useStore((s) => s.setView)
   const createIdeaFrom = useStore((s) => s.createIdeaFrom)
   const markPublished = useStore((s) => s.markPublished)
+  const unlocked = useStore((s) => s.unlocked)
   const push = useToast((s) => s.push)
 
   const list = Object.values(articles)
@@ -160,9 +161,11 @@ function Pipeline() {
       <p className="plan-foot">
         Pinned-date pieces keep their day; open slots fill from Ready, then Drafting, then your source material —
         picking one schedules it.{' '}
-        <button className="home-link" onClick={() => setView('sources')}>
-          All sources
-        </button>
+        {unlocked && (
+          <button className="home-link" onClick={() => setView('sources')}>
+            All sources
+          </button>
+        )}
       </p>
     </section>
   )

@@ -23,6 +23,11 @@ export function Settings() {
   const setView = useStore((s) => s.setView)
   const snapshotVersion = useStore((s) => s.snapshotVersion)
   const updateArticle = useStore((s) => s.updateArticle)
+  const unlocked = useStore((s) => s.unlocked)
+  const unlock = useStore((s) => s.unlock)
+  const lock = useStore((s) => s.lock)
+  const [pass, setPass] = useState('')
+  const [unlockErr, setUnlockErr] = useState(false)
   const fileRef = useRef<HTMLInputElement>(null)
   const [pendingImport, setPendingImport] = useState<{ text: string; count: number } | null>(null)
   const [voiceBusy, setVoiceBusy] = useState(false)
@@ -43,6 +48,17 @@ export function Settings() {
     updateArticle(c.articleId, { body: c.diskBody }, { immediate: true })
     setDiskChanges((prev) => (prev ? prev.filter((x) => x.articleId !== c.articleId) : prev))
     push(`Pulled “${c.title}” from disk`)
+  }
+
+  async function doUnlock() {
+    const ok = await unlock(pass)
+    if (ok) {
+      setPass('')
+      setUnlockErr(false)
+      push('Personal features unlocked')
+    } else {
+      setUnlockErr(true)
+    }
   }
 
   async function learnMyVoice() {
@@ -98,6 +114,57 @@ export function Settings() {
       </div>
 
       <div className="settings">
+        {/* ── Personal unlock ─────────────────────────────────────── */}
+        <section className="set-card">
+          <h2 className="set-title">Personal</h2>
+          {unlocked ? (
+            <>
+              <p className="set-hint">
+                Personal features are unlocked on this device — the Config Track, Book, and your source material.
+              </p>
+              <button className="btn btn-soft" onClick={() => lock()}>
+                <Icon name="settings" size={16} /> Return to demo (lock)
+              </button>
+            </>
+          ) : (
+            <>
+              <p className="set-hint">
+                You’re viewing the demo. Enter your passphrase to unlock your personal features (Config Track, Book,
+                source material). Your real writing is never in this build — it lives in your own workspace.
+              </p>
+              <form
+                className="set-field"
+                onSubmit={(e) => {
+                  e.preventDefault()
+                  void doUnlock()
+                }}
+              >
+                <input
+                  type="password"
+                  className="input"
+                  placeholder="unlock passphrase"
+                  value={pass}
+                  autoCapitalize="none"
+                  autoCorrect="off"
+                  spellCheck={false}
+                  onChange={(e) => {
+                    setPass(e.target.value)
+                    setUnlockErr(false)
+                  }}
+                />
+                <button className="btn btn-primary" type="submit" style={{ marginTop: 10 }}>
+                  Unlock personal features
+                </button>
+                {unlockErr && (
+                  <p className="set-hint" style={{ color: 'var(--danger, #ef4444)', marginTop: 8 }}>
+                    That passphrase didn’t match.
+                  </p>
+                )}
+              </form>
+            </>
+          )}
+        </section>
+
         {/* ── Appearance ──────────────────────────────────────────── */}
         <section className="set-card">
           <h2 className="set-title">Appearance</h2>
@@ -284,8 +351,8 @@ export function Settings() {
           </div>
         </section>
 
-        {/* ── Semantic search (on-device) ─────────────────────────── */}
-        {!DEMO_MODE && (
+        {/* ── Semantic search (on-device) — personal ──────────────── */}
+        {unlocked && (
           <section className="set-card">
             <h2 className="set-title">Semantic search (on-device)</h2>
             <p className="set-hint">
@@ -312,20 +379,22 @@ export function Settings() {
           </section>
         )}
 
-        {/* ── Source material ─────────────────────────────────────── */}
-        <section className="set-card">
-          <h2 className="set-title">Source material</h2>
-          <p className="set-hint">
-            Article ideas drawn from your real work — case studies, app PRDs, career stories. Add any to the Archive as a
-            fresh idea.
-          </p>
-          <button className="btn btn-soft" onClick={() => setView('sources')}>
-            <Icon name="sources" size={16} /> Browse source material
-          </button>
-        </section>
+        {/* ── Source material (personal) ──────────────────────────── */}
+        {unlocked && (
+          <section className="set-card">
+            <h2 className="set-title">Source material</h2>
+            <p className="set-hint">
+              Article ideas drawn from your real work — case studies, app PRDs, career stories. Add any to the Archive as
+              a fresh idea.
+            </p>
+            <button className="btn btn-soft" onClick={() => setView('sources')}>
+              <Icon name="sources" size={16} /> Browse source material
+            </button>
+          </section>
+        )}
 
-        {/* ── Local files (two-way sync) ──────────────────────────── */}
-        {!DEMO_MODE && (
+        {/* ── Local files (two-way sync) — personal ───────────────── */}
+        {unlocked && (
           <section className="set-card">
             <h2 className="set-title">Local files</h2>
             <p className="set-hint">

@@ -73,11 +73,11 @@ export function groupArticles(articles: Article[], groupBy: 'phase' | 'status' |
       .filter((g) => g.articles.length > 0)
   }
 
-  // group by phase (default)
+  // group by phase (default) — empty/missing phase → "unfiled"
   return PHASE_ORDER.map((phase) => ({
     key: phase,
     label: phase,
-    articles: filtered.filter((a) => a.phase === phase).sort(planOrder),
+    articles: filtered.filter((a) => (a.phase || 'unfiled') === phase).sort(planOrder),
   })).filter((g) => g.articles.length > 0)
 }
 

@@ -31,7 +31,12 @@ const VIEW_TITLES: Record<string, string> = {
 
 export function App() {
   const loaded = useStore((s) => s.loaded)
-  const view = useStore((s) => s.view)
+  const rawView = useStore((s) => s.view)
+  const unlocked = useStore((s) => s.unlocked)
+  // Defensive: never render a personal view while locked (no path should reach
+  // here, but keep the demo airtight).
+  const view =
+    !unlocked && (rawView === 'config' || rawView === 'book' || rawView === 'sources') ? 'home' : rawView
   const init = useStore((s) => s.init)
   const accent = useStore((s) => s.settings.accent)
   const prevView = useRef(view)

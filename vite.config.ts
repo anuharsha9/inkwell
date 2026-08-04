@@ -100,6 +100,65 @@ function localArchive(): PluginOption {
         }
       })
 
+      // ── Backup write (phone sync) ── the browser POSTs its full backup here
+      // after edits. We MERGE into the durable file (last-write-wins per article
+      // by updatedAt, never dropping one) and mirror a copy into iCloud Drive, so
+      // both the phone's local-server pull (/__inkwell/bootstrap) and its
+      // "Import from Files" path always see her latest dev edits. Dev-only.
+      const DOCS_BACKUP = path.join(os.homedir(), 'Documents', 'Inkwell', 'inkwell-backup.json')
+      const ICLOUD_BACKUP = path.join(
+        os.homedir(), 'Library', 'Mobile Documents', 'com~apple~CloudDocs', 'Inkwell', 'inkwell-backup.json',
+      )
+
+      type Backuplike = { articles?: { id: string; updatedAt?: string }[] } & Record<string, unknown>
+
+      const mergeBackups = (existing: Backuplike | null, incoming: Backuplike): Backuplike => {
+        const byId = new Map<string, { id: string; updatedAt?: string }>()
+        for (const a of existing?.articles ?? []) byId.set(a.id, a)
+        for (const a of incoming.articles ?? []) {
+          const prev = byId.get(a.id)
+          // keep whichever has the newer updatedAt; unknown timestamps sort oldest
+          if (!prev || (a.updatedAt ?? '') >= (prev.updatedAt ?? '')) byId.set(a.id, a)
+        }
+        // non-article fields (images/settings/vocab/sources) come from the live browser
+        return { ...existing, ...incoming, articles: Array.from(byId.values()) }
+      }
+
+      const writeBoth = (obj: unknown) => {
+        const json = JSON.stringify(obj, null, 2)
+        for (const target of [DOCS_BACKUP, ICLOUD_BACKUP]) {
+          try {
+            fs.mkdirSync(path.dirname(target), { recursive: true })
+            fs.writeFileSync(target, json, 'utf8')
+          } catch {
+            /* iCloud dir may not exist if iCloud Drive is off — skip that mirror */
+          }
+        }
+      }
+
+      server.middlewares.use('/__inkwell/backup', async (req: IncomingMessage, res: ServerResponse) => {
+        if (req.method !== 'POST') {
+          res.statusCode = 405
+          return res.end()
+        }
+        try {
+          const incoming = (await readJson(req)) as Backuplike
+          if (!Array.isArray(incoming.articles)) throw new Error('no articles')
+          let existing: Backuplike | null = null
+          try {
+            existing = JSON.parse(fs.readFileSync(DOCS_BACKUP, 'utf8')) as Backuplike
+          } catch {
+            /* first write — no existing file */
+          }
+          writeBoth(mergeBackups(existing, incoming))
+          res.statusCode = 200
+          res.end('ok')
+        } catch {
+          res.statusCode = 400
+          res.end('bad request')
+        }
+      })
+
       // ── Read side (two-way sync) ── list the .md files, and read one back, so
       // edits made in any external editor can flow back into the app.
       server.middlewares.use('/__inkwell/list', (req: IncomingMessage, res: ServerResponse) => {
@@ -151,7 +210,14 @@ export default defineConfig({
   resolve: {
     alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) },
   },
-  server: { port: process.env.PORT ? Number(process.env.PORT) : 3120 },
+  // host:true binds to all interfaces so the phone can reach /__inkwell/bootstrap
+  // over the LAN or Tailscale; allowedHosts:true lets those non-localhost Host
+  // headers through Vite's dev-server host check. Dev-only, on her own machine.
+  server: {
+    host: true,
+    allowedHosts: true,
+    port: process.env.PORT ? Number(process.env.PORT) : 3120,
+  },
   build: {
     rollupOptions: {
       output: {
