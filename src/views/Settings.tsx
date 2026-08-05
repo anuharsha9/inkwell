@@ -484,6 +484,25 @@ export function Settings() {
           />
         </section>
 
+        {/* ── Warden cadence auto-tracking (owner-only) ───────────── */}
+        {!DEMO_MODE && (
+          <section className="set-card">
+            <h2 className="set-title">Cadence auto-tracking</h2>
+            <p className="set-hint">
+              Paste your dedicated Warden signal key and publishing an article will auto-complete its Cadence
+              commitment in Warden — no manual tap. Stored only on this device, scrubbed from backups, and absent
+              from the public demo, so only your real publishes count.
+            </p>
+            <Field
+              label="Warden signal key"
+              type="password"
+              placeholder="paste your Warden cadence key…"
+              value={settings.wardenKey}
+              onChange={(v) => updateSettings({ wardenKey: v })}
+            />
+          </section>
+        )}
+
         {/* ── Backup ──────────────────────────────────────────────── */}
         <section className="set-card">
           <h2 className="set-title">Backup &amp; portability</h2>

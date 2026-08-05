@@ -37,6 +37,7 @@ export const DEFAULT_SETTINGS: Settings = {
   // Personal build: the most capable model for her own writing; demo visitors'
   // BYO-key default stays on the cheaper Opus tier.
   aiModel: DEMO_MODE ? 'claude-opus-4-8' : 'claude-fable-5',
+  wardenKey: '',
   aiEnabled: true,
   allowWebSearch: true,
   semanticEnabled: false, // opt-in only — never auto-download the model

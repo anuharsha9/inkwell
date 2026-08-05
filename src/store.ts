@@ -4,6 +4,7 @@ import type { Source, Suggestion } from '@/data/sources'
 import * as db from '@/lib/storage'
 import { countWords, nowISO, uuid } from '@/lib/text'
 import { removeArticleFile, syncArticleFile } from '@/lib/localArchive'
+import { notifyWardenPublished } from '@/lib/wardenSignal'
 import { parseBackup, type Backup } from '@/lib/backup'
 import { reviewCard, type Grade } from '@/lib/srs'
 import { DEMO_MODE } from '@/lib/env'
@@ -152,7 +153,7 @@ export const useStore = create<InkState>((set, get) => {
         exportedAt: new Date().toISOString(),
         articles: Object.values(s.articles),
         images: Object.values(s.images),
-        settings: { ...s.settings, aiApiKey: '', imageApiKey: '' }, // never write secrets
+        settings: { ...s.settings, aiApiKey: '', imageApiKey: '', wardenKey: '' }, // never write secrets
         vocab: s.vocab,
         customSources: s.customSources,
       }
@@ -405,7 +406,10 @@ export const useStore = create<InkState>((set, get) => {
       if (status === 'published') {
         if (!prev.publishedAt) patch.publishedAt = nowISO()
         patch.scheduledFor = null // its plan slot is done
-        if (prev.status !== 'published') set((s) => ({ publishTick: s.publishTick + 1 }))
+        if (prev.status !== 'published') {
+        set((s) => ({ publishTick: s.publishTick + 1 }))
+        notifyWardenPublished(id, get().settings.wardenKey) // auto-complete the Cadence commitment
+      }
       }
       // Alt text required before "ready" — but never block her: backfill the
       // cover's alt from the title if she left it empty (PRD §5.5).
@@ -442,7 +446,10 @@ export const useStore = create<InkState>((set, get) => {
       if (!prev) return
       const patch: Partial<Article> = { status: 'published', publishedAt: prev.publishedAt ?? nowISO(), scheduledFor: null }
       if (platforms) patch.platforms = platforms
-      if (prev.status !== 'published') set((s) => ({ publishTick: s.publishTick + 1 }))
+      if (prev.status !== 'published') {
+        set((s) => ({ publishTick: s.publishTick + 1 }))
+        notifyWardenPublished(id, get().settings.wardenKey) // auto-complete the Cadence commitment
+      }
       get().updateArticle(id, patch, { immediate: true })
     },
 

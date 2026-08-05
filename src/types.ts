@@ -80,6 +80,10 @@ export interface Settings {
   // AI writing assistant (Claude) — key stored locally, never shipped. Empty = degrade.
   aiApiKey: string
   aiModel: string
+  // Warden cadence auto-tracking — paste your dedicated Warden signal key to have
+  // "published" auto-complete the matching Cadence commitment. Owner-only: stored
+  // on this device, scrubbed from backups, never present in the public demo.
+  wardenKey: string
   // Governance toggles — she controls what the AI is allowed to do.
   aiEnabled: boolean // master switch for all AI writing features
   allowWebSearch: boolean // permit web search for grounded insights / originality
