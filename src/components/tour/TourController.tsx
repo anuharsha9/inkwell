@@ -27,6 +27,7 @@ function markTourSeen() {
 // screen. Skippable at every step (button + Esc); shows once, then on demand.
 export function TourController() {
   const setView = useStore((s) => s.setView)
+  const view = useStore((s) => s.view)
   const openEditor = useStore((s) => s.openEditor)
   const articles = useStore((s) => s.articles)
   const loaded = useStore((s) => s.loaded)
@@ -92,7 +93,7 @@ export function TourController() {
 
   return (
     <>
-      {!active && (
+      {!active && view !== 'learn' && (
         <button type="button" className="tour-launch" onClick={start} aria-label="Take a guided tour of Inkwell">
           <Icon name="spark" size={15} /> Take a tour
         </button>

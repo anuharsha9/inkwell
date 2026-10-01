@@ -60,7 +60,13 @@ export function App() {
   // View Transitions API for smooth page switches
   useEffect(() => {
     if (prevView.current !== view && document.startViewTransition) {
-      document.startViewTransition(() => {})
+      const t = document.startViewTransition(() => {})
+      // A rapid view switch aborts the in-flight transition, rejecting these
+      // promises with InvalidStateError. That's expected — swallow it so it
+      // doesn't surface as an uncaught promise rejection in the console.
+      t.ready?.catch(() => {})
+      t.finished?.catch(() => {})
+      t.updateCallbackDone?.catch(() => {})
     }
     prevView.current = view
   }, [view])

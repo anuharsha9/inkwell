@@ -3714,6 +3714,77 @@ body.focus-mode .app {
   margin-top: 2px;
 }
 
+/* ── "What Inkwell does" — the 1-2-3 ── */
+.learn-steps {
+  max-width: 880px;
+  margin: 0 auto 56px;
+  text-align: center;
+}
+.learn-steps .learn-h2 {
+  margin-bottom: 26px;
+}
+.learn-steps-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  text-align: left;
+}
+.learn-step {
+  position: relative;
+  background: var(--surface);
+  border-radius: var(--r-lg);
+  padding: 24px 22px 22px;
+  box-shadow: var(--edge-light), var(--elev-1);
+}
+.learn-step-num {
+  position: absolute;
+  top: 18px;
+  right: 20px;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: var(--fw-semi);
+  color: var(--accent);
+  opacity: 0.55;
+}
+.learn-step-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: var(--r-md);
+  background: var(--accent-tint);
+  color: var(--accent);
+  display: grid;
+  place-items: center;
+  margin-bottom: 14px;
+}
+.learn-step-title {
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: var(--fw-medium);
+  letter-spacing: -0.01em;
+  margin-bottom: 7px;
+}
+.learn-step-body {
+  font-family: var(--font-read);
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--ink-soft);
+}
+.learn-steps-foot {
+  font-family: var(--font-read);
+  font-style: italic;
+  font-size: 15px;
+  color: var(--ink-soft);
+  margin-top: 22px;
+}
+@media (max-width: 720px) {
+  .learn-steps-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 /* ═══════════════════════════════════════════════════════════════════════
    Predictive ghost-text (New Article dialog)
    ═══════════════════════════════════════════════════════════════════════ */

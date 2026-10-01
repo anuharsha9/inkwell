@@ -131,7 +131,7 @@ export function TabBar() {
 
   return (
     <>
-      <button className={`compose-fab ${inEditor ? 'hide' : ''}`} onClick={() => createArticle()} aria-label="New article">
+      <button className={`compose-fab ${inEditor || view === 'learn' ? 'hide' : ''}`} onClick={() => createArticle()} aria-label="New article">
         <Icon name="plus" size={24} strokeWidth={2} />
       </button>
       <nav className={`tabbar ${inEditor ? 'hide' : ''}`} aria-label="Primary">

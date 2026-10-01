@@ -125,6 +125,40 @@ export function Learn() {
         )}
       </header>
 
+      <section className="learn-steps">
+        <span className="learn-eyebrow">
+          <Icon name="spark" size={14} /> What Inkwell does
+        </span>
+        <h2 className="learn-h2">Beat the blank page — in your own voice</h2>
+        <ol className="learn-steps-grid">
+          <li className="learn-step">
+            <span className="learn-step-num">1</span>
+            <div className="learn-step-icon"><Icon name="archive" size={22} /></div>
+            <h3 className="learn-step-title">Feed it your voice</h3>
+            <p className="learn-step-body">
+              Drop in your past writing, notes, and links. Inkwell learns how you write — and what you know.
+            </p>
+          </li>
+          <li className="learn-step">
+            <span className="learn-step-num">2</span>
+            <div className="learn-step-icon"><Icon name="pen" size={22} /></div>
+            <h3 className="learn-step-title">Draft on any topic</h3>
+            <p className="learn-step-body">
+              Tell it what you want to write about. Inkwell writes the first draft — in your voice, grounded in your material.
+            </p>
+          </li>
+          <li className="learn-step">
+            <span className="learn-step-num">3</span>
+            <div className="learn-step-icon"><Icon name="chart" size={22} /></div>
+            <h3 className="learn-step-title">Refine and get sharper</h3>
+            <p className="learn-step-body">
+              Edit with a coach that improves the piece and teaches you the craft — so the next one comes easier.
+            </p>
+          </li>
+        </ol>
+        <p className="learn-steps-foot">Writer's block, gone — and you come out a better writer.</p>
+      </section>
+
       <section className="learn-ainative">
         <span className="learn-eyebrow">
           <Icon name="spark" size={14} /> AI-native, not AI-bolted-on
