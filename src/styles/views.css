@@ -358,8 +358,8 @@
   max-width: 52ch;
   margin: 24px auto 0;
   padding: 12px 16px;
-  background: var(--accent-tint-soft);
-  border: 1px solid color-mix(in srgb, var(--accent) 18%, transparent);
+  background: transparent;
+  border: 1px solid var(--line);
   border-radius: var(--r-md);
 }
 .learn-section {
@@ -4027,7 +4027,8 @@ body.focus-mode .app {
   max-width: 760px;
   margin: 0 auto 52px;
   padding: 16px 22px;
-  background: var(--accent-tint);
+  background: transparent;
+  border: 1px solid var(--line);
   border-radius: var(--r-lg);
   font-family: var(--font-ui);
   font-size: 14px;
