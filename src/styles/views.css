@@ -458,11 +458,10 @@
 }
 .learn-cta {
   text-align: center;
-  background: var(--surface);
+  background: transparent;
   border: 1px solid var(--line);
   border-radius: var(--r-xl);
   padding: 40px 28px;
-  box-shadow: var(--shadow-sm);
   margin-bottom: 24px;
 }
 
@@ -3744,22 +3743,20 @@ body.focus-mode .app {
   align-items: start;
   gap: 13px;
   width: 100%;
-  background: var(--surface);
+  background: transparent;
   border-radius: var(--r-lg);
   padding: 17px 18px;
   text-align: left;
   cursor: pointer;
-  border: 1px solid transparent;
-  box-shadow: var(--edge-light), var(--elev-1);
-  transition: border-color 0.2s, background 0.2s, transform 0.2s;
+  border: 1px solid var(--line);
+  transition: border-color 0.2s, transform 0.2s;
   overflow: hidden;
 }
 .ob-step:hover {
-  transform: translateY(-1px);
+  border-color: var(--line-strong);
 }
 .ob-step.is-active {
-  border-color: color-mix(in srgb, var(--accent) 45%, transparent);
-  background: var(--accent-tint);
+  border-color: var(--accent);
 }
 .ob-step-num {
   font-family: var(--font-mono);
@@ -3820,9 +3817,9 @@ body.focus-mode .app {
 
 /* ── preview panel ── */
 .ob-preview {
-  background: var(--surface);
+  background: transparent;
   border-radius: var(--r-lg);
-  box-shadow: var(--edge-light), var(--elev-1);
+  border: 1px solid var(--line);
   padding: 22px;
   display: flex;
   flex-direction: column;
@@ -3855,7 +3852,8 @@ body.focus-mode .app {
   display: inline-flex;
   align-items: center;
   gap: 9px;
-  background: var(--canvas);
+  background: var(--surface);
+  border: 1px solid var(--line);
   border-radius: var(--r-md);
   padding: 9px 12px;
   font-family: var(--font-read);
@@ -3951,7 +3949,8 @@ body.focus-mode .app {
 .ob-before {
   color: var(--ink-mute);
   text-decoration: line-through;
-  background: var(--canvas);
+  background: var(--surface);
+  border: 1px solid var(--line);
 }
 .ob-after {
   color: var(--ink);
@@ -3990,10 +3989,10 @@ body.focus-mode .app {
   gap: 16px;
 }
 .learn-trio-card {
-  background: var(--surface);
+  background: transparent;
   border-radius: var(--r-lg);
+  border: 1px solid var(--line);
   padding: 24px 22px;
-  box-shadow: var(--edge-light), var(--elev-1);
 }
 .learn-trio-icon {
   width: 42px;
