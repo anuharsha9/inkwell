@@ -2,6 +2,7 @@ import Anthropic from '@anthropic-ai/sdk'
 import type { Article, Settings } from '@/types'
 import { DEMO_MODE, IS_DEV } from './env'
 import type { PrivacyCategory, PrivacyFinding } from './privacy'
+import { reportUsageBeacon } from './warden-usage'
 
 // ─────────────────────────────────────────────────────────────────────────
 // The AI writing partner. One adapter, one seam. Talks to Claude (default
@@ -58,21 +59,43 @@ const isFable = (m: string) => m.startsWith('claude-fable') || m.startsWith('cla
 // request (stop_reason "refusal"); the server-side fallback transparently
 // re-serves it with Opus 4.8 in the same call — declined-then-rescued requests
 // are repriced automatically, so she never sees a dead click.
+//
+// This is also the one place every AI call passes through, so it's where we report
+// real usage to Warden — the Writing Assistant agent, metered. Demo (visitor BYO
+// keys) is skipped so only HER real spend lands there; it reports the model Claude
+// actually used (after any Fable→Opus fallback) and the real token counts.
 async function createMsg(
   s: Settings,
   params: Omit<Anthropic.MessageCreateParamsNonStreaming, 'model'>,
+  action = 'generate',
 ): Promise<Anthropic.Message> {
   const model = MODEL(s)
   const c = client(s)
-  if (isFable(model)) {
-    return (await c.beta.messages.create({
-      model,
-      ...params,
-      betas: ['server-side-fallback-2026-06-01'],
-      fallbacks: [{ model: 'claude-opus-4-8' }],
-    } as never)) as unknown as Anthropic.Message
+  const t0 = Date.now()
+  const res = isFable(model)
+    ? ((await c.beta.messages.create({
+        model,
+        ...params,
+        betas: ['server-side-fallback-2026-06-01'],
+        fallbacks: [{ model: 'claude-opus-4-8' }],
+      } as never)) as unknown as Anthropic.Message)
+    : await c.messages.create({ model, ...params })
+
+  if (!DEMO_MODE) {
+    reportUsageBeacon({
+      app: 'inkwell',
+      agent: 'writing-assistant',
+      action,
+      actor: 'user',
+      provider: 'anthropic',
+      model: res.model ?? model, // the model Claude actually billed (post-fallback)
+      inputTokens: res.usage?.input_tokens ?? 0,
+      outputTokens: res.usage?.output_tokens ?? 0,
+      latencyMs: Date.now() - t0,
+      status: 'ok',
+    })
   }
-  return c.messages.create({ model, ...params })
+  return res
 }
 
 // LinkedIn algorithm knowledge — embedded so every AI surface can give
@@ -127,12 +150,22 @@ function systemPrompt(s: Settings, article?: Article): string {
     .join('\n')
 }
 
-async function complete(s: Settings, system: string, user: string, maxTokens = 2048): Promise<string> {
-  const res = await createMsg(s, {
-    max_tokens: maxTokens,
-    system,
-    messages: [{ role: 'user', content: user }],
-  })
+async function complete(
+  s: Settings,
+  system: string,
+  user: string,
+  maxTokens = 2048,
+  action = 'generate',
+): Promise<string> {
+  const res = await createMsg(
+    s,
+    {
+      max_tokens: maxTokens,
+      system,
+      messages: [{ role: 'user', content: user }],
+    },
+    action,
+  )
   return res.content
     .filter((b): b is Anthropic.TextBlock => b.type === 'text')
     .map((b) => b.text)
@@ -168,7 +201,7 @@ export async function runQuickAction(action: QuickAction, article: Article, s: S
     : ''
   const user = `Title: ${article.title || 'Untitled'}\nAngle: ${article.hook || '—'}${formatNote}\n\n${brief}${strict}\n\n--- DRAFT ---\n${body}`
   const max = action === 'continue' ? 1200 : action === 'expand' ? 3000 : 2600
-  return complete(s, systemPrompt(s, article), user, max)
+  return complete(s, systemPrompt(s, article), user, max, action)
 }
 
 // ── Full first draft (from source material, with her writing as voice proof) ─
@@ -218,7 +251,7 @@ ${lengthRule}
 - Open the way she opens (no throat-clearing), close the way she closes (a line that lands). Match the rhythm, devices, and register of the voice-proof pieces.
 ${proof ? `\n${proof}` : ''}${storyBlock}${voiceBlock}`
 
-  return complete(s, systemPrompt(s, article), user, isPost ? 1200 : 4000)
+  return complete(s, systemPrompt(s, article), user, isPost ? 1200 : 4000, 'draft')
 }
 
 // ── Draft review (suggestion cards) ────────────────────────────────────────
@@ -245,7 +278,7 @@ export async function reviewDraft(article: Article, s: Settings): Promise<Sugges
       ? ' This targets LinkedIn — also flag any outbound links that should move to the first comment, and check that the opening hooks above the fold.'
       : ''
   const user = `Title: ${article.title || 'Untitled'}\nAngle: ${article.hook || '—'}\nFormat: ${article.format === 'post' ? 'LinkedIn post' : 'Full article'}\n\nReview this draft as her editor and surface the highest-impact improvements across clarity, voice, engagement, and correctness.${formatCtx}\n\n${REVIEW_SCHEMA_HINT}\n\n--- DRAFT ---\n${body}`
-  const raw = await complete(s, systemPrompt(s, article), user, 2600)
+  const raw = await complete(s, systemPrompt(s, article), user, 2600, 'review')
   return parseSuggestions(raw)
 }
 
@@ -289,7 +322,7 @@ export async function coachLesson(article: Article, s: Settings): Promise<string
 
 --- DRAFT ---
 ${body}`
-  return complete(s, systemPrompt(s, article), user, 1100)
+  return complete(s, systemPrompt(s, article), user, 1100, 'coach')
 }
 
 // ── Grounded insights (web-sourced craft guidance, cited) ──────────────────
@@ -312,7 +345,7 @@ ${body}`
     system: systemPrompt(s, article),
     tools: [{ type: 'web_search_20260209', name: 'web_search', max_uses: 4 }] as Anthropic.Messages.ToolUnion[],
     messages: [{ role: 'user', content: user }],
-  })
+  }, 'insights')
   return res.content
     .filter((b): b is Anthropic.TextBlock => b.type === 'text')
     .map((b) => b.text)
@@ -335,7 +368,7 @@ export async function privacyScan(article: Article, s: Settings): Promise<Privac
   const sys =
     'You are a careful privacy and confidentiality reviewer for a writer preparing to publish in public. You protect her from doxxing herself or breaching confidentiality. You are precise and never paranoid about harmless generic detail.'
   const user = `Review this draft before she publishes it publicly. Her rule: keep all numbers generic and all company names generic; never expose her birthdate, home address, exact salary/finances, or contact details.\n\n${PRIVACY_SCHEMA_HINT}\n\n--- DRAFT ---\n${body}`
-  const raw = await complete(s, sys, user, 2048)
+  const raw = await complete(s, sys, user, 2048, 'privacy-scan')
   return parsePrivacy(raw)
 }
 
@@ -370,7 +403,7 @@ export async function corpusInsight(samples: string[], s: Settings): Promise<str
     .join('\n\n')
     .slice(0, 40000)
   const user = `Across these recent pieces of my writing, give me ONE high-leverage craft insight to work on right now — a pattern you actually see (e.g. "you open with throat-clearing", "your sentences rarely vary in length", "you explain the joke after telling it"). Quote a short real example, name the principle, and give me one thing to practice in my next piece. Under 140 words, markdown, in my coach's voice. If there isn't enough writing yet, say so warmly in one line.\n\n${corpus}`
-  return complete(s, systemPrompt(s), user, 700)
+  return complete(s, systemPrompt(s), user, 700, 'corpus-insight')
 }
 
 // ── Originality / plagiarism (web-grounded) ───────────────────────────────
@@ -384,7 +417,7 @@ export async function originalityScan(article: Article, s: Settings): Promise<st
       'You are an originality and fact reviewer helping a writer avoid accidental plagiarism and unverifiable claims before publishing. You are precise, cite real sources, and never fabricate matches.',
     tools: [{ type: 'web_search_20260209', name: 'web_search', max_uses: 5 }] as Anthropic.Messages.ToolUnion[],
     messages: [{ role: 'user', content: user }],
-  })
+  }, 'originality')
   return res.content
     .filter((b): b is Anthropic.TextBlock => b.type === 'text')
     .map((b) => b.text)
@@ -401,5 +434,5 @@ export async function learnVoice(samples: string[], s: Settings): Promise<string
   const user = `Below are samples of the writer's actual writing. Produce a concise VOICE PROFILE another editor could use to write convincingly in their voice. Cover: tone, sentence rhythm, signature moves, vocabulary, what she avoids, and how she opens and closes. Be specific and quote a few characteristic phrases. 200–300 words, plain prose (not a list of generic adjectives).\n\n${corpus}`
   const system =
     'You are a sharp literary editor who can characterize a writer\'s voice precisely from samples. You never flatter; you describe what is actually on the page.'
-  return complete(s, system, user, 1200)
+  return complete(s, system, user, 1200, 'learn-voice')
 }
